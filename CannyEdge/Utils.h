@@ -18,7 +18,10 @@ public:
 	//template <typename T1>
 	void conv2(const Mat& src, Mat& dst, const vector< vector<float>> &kernel);
 
-private:
+
+	void conv2_v(const Mat& src, Mat& dst, const vector<float> kernel);
+	void conv2_h(const Mat& src, Mat& dst, const vector<float> kernel);
+
 
 };
 

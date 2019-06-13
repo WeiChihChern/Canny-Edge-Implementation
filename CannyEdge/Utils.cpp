@@ -52,3 +52,72 @@ void Utils::conv2(const Mat &src, Mat &dst, const vector< vector<float>> &kernel
 
 	return;
 }
+
+
+
+
+
+
+// change name to conv2_h
+void Utils::conv2_h(const Mat& src, Mat& dst, const vector<float> kernel) {
+	
+	int k_size = kernel.size(),
+		src_rows = src.rows,
+		src_cols = src.cols;
+
+	int offset_col = k_size / 2;
+	int k_idx = -offset_col;
+
+	for (int i = 0; i < src_rows; i++) {
+		const uchar* src_ptr = src.ptr<uchar>(i);
+		float* dst_ptr = dst.ptr<float>(i);
+
+		for (int j = offset_col; j < (src_cols - offset_col); j++) {
+
+			
+			const uchar* src_temp = src_ptr+j;
+			float sum = 0; 
+
+			std::for_each(kernel.begin(), kernel.end(), 
+				[src_temp, &sum, k_idx](const float &k_val) mutable
+				{
+					sum += src_temp[k_idx++] * k_val;
+				}
+			);
+			
+			dst_ptr[j] = sum;
+		}
+	}
+}
+
+
+
+void Utils::conv2_v(const Mat& src, Mat& dst, const vector<float> kernel) {
+
+	int k_size = kernel.size(),
+		src_rows = src.rows,
+		src_cols = src.cols;
+
+	int offset_row = k_size / 2;
+	int k_idx = -offset_row;
+
+	for (int i = offset_row; i < (src.rows - offset_row); i++) {
+		const uchar* src_ptr = src.ptr<uchar>(i);
+		float* dst_ptr = dst.ptr<float>(i);
+
+		for (int j = 0; j < src_cols; j++) {
+
+			const uchar* src_temp = src_ptr + j;
+			float sum = 0;
+
+			std::for_each(kernel.begin(), kernel.end(),
+				[src_temp, &sum, k_idx, &src_cols](const float& k_val) mutable
+				{
+					sum += src_temp[(k_idx++ * src_cols)] * k_val;
+				}
+			);
+
+			dst_ptr[j] = sum;
+		}
+	}
+}

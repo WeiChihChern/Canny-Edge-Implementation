@@ -3,7 +3,6 @@
 
 #include "opencv2/opencv.hpp"
 
-#include "Utils.h"
 #include "Edge.h"
 
 using namespace std;
@@ -17,7 +16,7 @@ int main() {
 
 
 	Edge edge;
-	Mat img2 = edge.getEdge(img);
+	Mat img2 = edge.getEdge2(img);
 
 	Mat img3; 
 	img2.convertTo(img3, CV_8UC1); // Edge result is in float type, convert it to 8-bit for display purpose only
