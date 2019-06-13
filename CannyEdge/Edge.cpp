@@ -23,12 +23,15 @@ Mat Edge::getEdge(Mat& src) {
 
 
 Mat Edge::getEdge2(Mat& src) {
-	Mat copy1(src.rows, src.cols, CV_32FC1);
+	Mat copy1(src.rows, src.cols, CV_32FC1, cv::Scalar(0));
 	this->conv2_h(src, copy1, this->sobel_one);
-	Mat copy1_temp = copy1.clone();
-	this->conv2_v(copy1_temp, copy1, this->sobel_two);
+	Mat temp = copy1.clone();
+	this->conv2_v(temp, copy1, this->sobel_two);
+	//copy1.convertTo(copy1, CV_8UC1);
+	//imshow("test", copy1);
+	//waitKey(0);
 
-	Mat copy2(src.rows, src.cols, CV_32FC1);
+	Mat copy2(src.rows, src.cols, CV_32FC1, cv::Scalar(0));
 	this->conv2_h(src, copy2, this->sobel_two);
 	Mat copy2_temp = copy2.clone();
 	this->conv2_v(copy2_temp, copy2, this->sobel_one);

@@ -39,8 +39,7 @@ void Utils::conv2(const Mat &src, Mat &dst, const vector< vector<float>> &kernel
 
 			float sum = 0; //Kernel could be in float sometimes
 			for (int k = -k_rows/2; k < k_rows/2+1; k++) {
-				const uchar* src_ptr = src.ptr<uchar>(i+k);
-				src_ptr += j;
+				const uchar* src_ptr = src.ptr<uchar>(i+k) + j;
 				for (int l = -k_cols/2; l < k_cols/2+1; l++) {
 					sum += (src_ptr[l] * kernel[k+k_rows/2][l+k_cols/2]);
 				}
@@ -81,7 +80,7 @@ void Utils::conv2_h(const Mat& src, Mat& dst, const vector<float> kernel) {
 			std::for_each(kernel.begin(), kernel.end(), 
 				[src_temp, &sum, k_idx](const float &k_val) mutable
 				{
-					sum += src_temp[k_idx++] * k_val;
+					sum += (src_temp[k_idx++] * k_val);
 				}
 			);
 			
@@ -102,18 +101,17 @@ void Utils::conv2_v(const Mat& src, Mat& dst, const vector<float> kernel) {
 	int k_idx = -offset_row;
 
 	for (int i = offset_row; i < (src.rows - offset_row); i++) {
-		const uchar* src_ptr = src.ptr<uchar>(i);
 		float* dst_ptr = dst.ptr<float>(i);
 
 		for (int j = 0; j < src_cols; j++) {
-
-			const uchar* src_temp = src_ptr + j;
+			const float* src_ptr = src.ptr<float>(i) + j;
 			float sum = 0;
-
+			
 			std::for_each(kernel.begin(), kernel.end(),
-				[src_temp, &sum, k_idx, &src_cols](const float& k_val) mutable
+				[src_ptr, &sum, k_idx, &src_cols] (const float& k_val) mutable
 				{
-					sum += src_temp[(k_idx++ * src_cols)] * k_val;
+					const float *val = src_ptr - (k_idx++ * src_cols);
+					sum += (*val * k_val);
 				}
 			);
 

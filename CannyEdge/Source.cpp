@@ -20,7 +20,13 @@ int main() {
 
 	Mat img3; 
 	img2.convertTo(img3, CV_8UC1); // Edge result is in float type, convert it to 8-bit for display purpose only
-	imshow("test", img3);
+	imshow("separate", img3);
+	waitKey(10);
+
+	Mat normal = edge.getEdge(img);
+	Mat new_normal;
+	normal.convertTo(new_normal, CV_8UC1);
+	imshow("normal", new_normal);
 	waitKey(10);
 
 	return 0;
