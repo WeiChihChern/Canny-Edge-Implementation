@@ -1,0 +1,28 @@
+#include <iostream>
+#include <vector>
+
+#include "opencv2/opencv.hpp"
+
+#include "Utils.h"
+#include "Edge.h"
+
+using namespace std;
+using namespace cv;
+
+
+int main() {
+
+
+	Mat img = imread("Capture.PNG", 0);
+
+
+	Edge edge;
+	Mat img2 = edge.getEdge(img);
+
+	Mat img3; 
+	img2.convertTo(img3, CV_8UC1); // Edge result is in float type, convert it to 8-bit for display purpose only
+	imshow("test", img3);
+	waitKey(10);
+
+	return 0;
+}
