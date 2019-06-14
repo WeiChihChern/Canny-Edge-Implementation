@@ -6,6 +6,17 @@
 using namespace std;
 using namespace cv;
 
+constexpr auto PI = 3.14159265;
+constexpr auto CONSTANT = 180 / PI;
+constexpr float highThreshold = 200;
+constexpr float lowThreshold  = 100;
+
+#if 0
+
+#else
+	#define DEBUG
+#endif
+
 
 class Edge : public Utils
 {
@@ -22,6 +33,11 @@ public:
 private: 
 	// square root of the sum of the squares 
 	Mat getMagnitude(const Mat &src1, const Mat &src2);
+	
 	Mat getGradients(const Mat& src1, const Mat& src2);
+	
+	Mat nonMaxSuppresion(Mat& magnitude, const Mat& gradient);
+
+	
 };
 
