@@ -38,10 +38,10 @@ void Utils::conv2(const Mat &src, Mat &dst, const vector< vector<float>> &kernel
 
 
 			float sum = 0; //Kernel could be in float sometimes
-			for (int k = -k_rows/2; k < k_rows/2+1; k++) {
+			for (int k = -offset_row; k < offset_row + 1; k++) {
 				const uchar* src_ptr = src.ptr<uchar>(i+k) + j;
-				for (int l = -k_cols/2; l < k_cols/2+1; l++) {
-					sum += (src_ptr[l] * kernel[k+k_rows/2][l+k_cols/2]);
+				for (int l = -offset_col; l < offset_col + 1; l++) {
+					sum += (src_ptr[l] * kernel[k + offset_row][l + offset_col]);
 				}
 			}
 			
@@ -77,13 +77,20 @@ void Utils::conv2_h(const Mat& src, Mat& dst, const vector<float> kernel) {
 			const uchar* src_temp = src_ptr+j;
 			float sum = 0; 
 
-			std::for_each(kernel.begin(), kernel.end(), 
-				[src_temp, &sum, k_idx](const float &k_val) mutable
-				{
-					sum += (src_temp[k_idx++] * k_val);
-				}
-			);
+			//std::for_each(kernel.begin(), kernel.end(), 
+			//	[src_temp, &sum, k_idx](const float &k_val) mutable
+			//	{
+			//		sum += (src_temp[k_idx++] * k_val);
+			//	}
+			//);
 			
+			// For loop proven to be faster than std::for_each in this case
+			for (int k = 0; k < kernel.size(); k++)
+			{
+				sum += src_temp[k - offset_col] * kernel[k];
+			}
+
+
 			dst_ptr[j] = sum;
 		}
 	}
@@ -107,13 +114,20 @@ void Utils::conv2_v(const Mat& src, Mat& dst, const vector<float> kernel) {
 			const float* src_ptr = src.ptr<float>(i) + j;
 			float sum = 0;
 			
-			std::for_each(kernel.begin(), kernel.end(),
-				[src_ptr, &sum, k_idx, &src_cols] (const float& k_val) mutable
-				{
-					const float *val = src_ptr - (k_idx++ * src_cols);
-					sum += (*val * k_val);
-				}
-			);
+			//std::for_each(kernel.begin(), kernel.end(),
+			//	[src_ptr, &sum, k_idx, &src_cols] (const float& k_val) mutable
+			//	{
+			//		const float *val = src_ptr - (k_idx++ * src_cols);
+			//		sum += (*val * k_val);
+			//	}
+			//);
+
+			// For loop proven to be faster than std::for_each in this case
+			for(int k = 0; k < kernel.size(); k++)
+			{
+				sum += src_ptr[(k - offset_row) * src_cols] * kernel[k];
+			}
+
 
 			dst_ptr[j] = sum;
 		}
