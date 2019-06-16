@@ -14,6 +14,7 @@ int main() {
 
 	Mat img = imread("Capture.PNG", 0);
 
+	GaussianBlur(img, img, Size(3, 3), 0.5);
 
 	Edge edge;
 	Mat img2 = edge.getEdge2(img);
@@ -21,7 +22,9 @@ int main() {
 	Mat img3; 
 	img2.convertTo(img3, CV_8UC1); // Edge result is in float type, convert it to 8-bit for display purpose only
 	imshow("separate", img3);
-	waitKey(10);
+	waitKey(0);
+
+
 
 	Mat normal = edge.getEdge(img);
 	Mat new_normal;
