@@ -25,7 +25,7 @@ public:
 	vector<vector<float>>   sobel_vertical = { {-1, -2, -1}, {0, 0, 0}, {1, 2, 1} };
 	vector<float>                sobel_one = { 1, 0, -1 };
 	vector<float>                sobel_two = { 1, 2, 1 };
-	Mat magnitude, gradient;
+	Mat magnitude, gradient, suppressed;
 
 	Edge();
 	~Edge();

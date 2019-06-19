@@ -18,10 +18,11 @@ Mat Edge::getEdge(Mat& src) {
 	this->conv2(src, copy1, sobel_horizontal);
 	this->conv2(src, copy2, sobel_vertical);
 
-	Mat magnitude = this->calculate_Magnitude(copy1, copy2);
-	Mat gradient  = this->calculate_Gradients(copy1, copy2);
+	this->magnitude = this->calculate_Magnitude(copy1, copy2);
+	this->gradient  = this->calculate_Gradients(copy1, copy2);
 	
-	return this->nonMaxSuppresion(magnitude, gradient);
+	this->suppressed = this->nonMaxSuppresion(magnitude, gradient);
+
 };
 
 
@@ -46,7 +47,7 @@ Mat Edge::getEdge2(Mat& src) {
 
 	this->magnitude = this->calculate_Magnitude(copy1, copy2);
 	this->gradient = this->calculate_Gradients(copy1, copy2);
-	// Mat refined_result = this->nonMaxSuppresion(this->magnitude, this->gradient);
+	
 	return this->nonMaxSuppresion(this->magnitude, this->gradient);
 }
 
@@ -130,7 +131,19 @@ Mat Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 }
 
 
+template <typename T1>
+void hysteresis_threshold(Mat& src, int high_thres = 200, int low_thres = 100) {
+	if (src.empty() || src.channels() == 3) { cout << "hysteresis_threshold() error!\n"; return; }
 
-void hysteresis_threshold(Mat& src, int high_thres, int low_thres) {
-
+	std::transform(src<T1>.begin(), src<T1>.end(), src<T1>.begin(), 
+		[&high_thres, &low_thres] (T1 &val) 
+		{
+			if (val >= high_thres) 
+				return 255;
+			else if (val < high_thres && val >= low_thres) 
+				return 125;
+			else 
+				return 0;
+		}
+	);
 }
