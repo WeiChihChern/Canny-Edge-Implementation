@@ -97,8 +97,9 @@ void Utils::conv2_h(const Mat& src, Mat& dst, const vector<float> kernel) {
 }
 
 
-
+//template <typename T1>
 void Utils::conv2_v(const Mat& src, Mat& dst, const vector<float> kernel) {
+	if (dst.empty()) dst = Mat(src.rows, src.cols, src.type());
 
 	int k_size = kernel.size(),
 		src_rows = src.rows,

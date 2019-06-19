@@ -13,7 +13,7 @@ Edge::~Edge()
 }
 
 
-Mat Edge::getEdge(Mat& src) {
+Mat Edge::CannyEdge(Mat& src) {
 	Mat copy1, copy2;
 	this->conv2(src, copy1, sobel_horizontal);
 	this->conv2(src, copy2, sobel_vertical);
@@ -21,12 +21,16 @@ Mat Edge::getEdge(Mat& src) {
 	this->magnitude = this->calculate_Magnitude(copy1, copy2);
 	this->gradient  = this->calculate_Gradients(copy1, copy2);
 	
+	copy1.release();
+	copy2.release();
+
 	this->suppressed = this->nonMaxSuppresion(magnitude, gradient);
 
-};
+	return suppressed;
+}
 
 
-Mat Edge::getEdge2(Mat& src) {
+Mat Edge::cannyEdge2(Mat& src) {
 
 	// copy1 = G(x)
 	Mat copy1(src.rows, src.cols, CV_32FC1, cv::Scalar(0));
@@ -40,15 +44,21 @@ Mat Edge::getEdge2(Mat& src) {
 
 #ifdef DEBUG
 	Mat conv2_result;
-	copy1.convertTo(conv2_result, CV_8UC1);
-	imshow("getEdge2's conv2d(), result of conv2_h() & conv2_v() in 8-bit", conv2_result);
-	waitKey(0);
+	copy2.convertTo(conv2_result, CV_8UC1);
+	imshow("cannyEdge2's conv2d(), result of conv2_h() & conv2_v() in 8-bit (from float)", conv2_result);
+	waitKey(10);
 #endif 
 
 	this->magnitude = this->calculate_Magnitude(copy1, copy2);
+
 	this->gradient = this->calculate_Gradients(copy1, copy2);
-	
-	return this->nonMaxSuppresion(this->magnitude, this->gradient);
+
+	this->suppressed = this->nonMaxSuppresion(this->magnitude, this->gradient);
+
+	this->hysteresis_threshold(suppressed);
+
+
+	return suppressed;
 }
 
 Mat Edge::calculate_Magnitude(const Mat& src1, const Mat& src2) {
@@ -59,6 +69,15 @@ Mat Edge::calculate_Magnitude(const Mat& src1, const Mat& src2) {
 			return std::sqrt(s1*s1 + s2*s2);
 		}
 	);
+
+#ifdef DEBUG
+	Mat magnitude_show;
+	result.convertTo(magnitude_show, CV_8UC1);
+	imshow("Edge class's calculate_magnitude() result in 8-bit (from float)", magnitude_show);
+	waitKey(10);
+#endif 
+
+
 	return result;
 }
 
@@ -75,10 +94,10 @@ Mat Edge::calculate_Gradients(const Mat& src1, const Mat& src2) {
 	);
 
 #ifdef DEBUG
-	Mat getGradients;
-	result.convertTo(getGradients, CV_8UC1);
-	imshow("getGradients() testing in 8-bit (from float type)", getGradients);
-	waitKey(0);
+	Mat gradient_show;
+	result.convertTo(gradient_show, CV_8UC1);
+	imshow("Edge class's calculate_gradient() result in 8-bit (from float)", gradient_show);
+	waitKey(10);
 #endif 
 
 	return result;
@@ -127,16 +146,24 @@ Mat Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 			}
 		}
 	}
+
+
+#ifdef DEBUG
+	Mat suppressed_show;
+	result.convertTo(suppressed_show, CV_8UC1);
+	imshow("Edge class's nonMaxSuppression() result in 8-bit (from float)", suppressed_show);
+	waitKey(10);
+#endif 
+
+
 	return result;
 }
 
 
-template <typename T1>
-void hysteresis_threshold(Mat& src, int high_thres = 200, int low_thres = 100) {
+void Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	if (src.empty() || src.channels() == 3) { cout << "hysteresis_threshold() error!\n"; return; }
 
-	std::transform(src<T1>.begin(), src<T1>.end(), src<T1>.begin(), 
-		[&high_thres, &low_thres] (T1 &val) 
+	std::transform(src.begin<float>(), src.end<float>(), src.begin<float>(), [&high_thres, &low_thres] (float &val) 
 		{
 			if (val >= high_thres) 
 				return 255;
@@ -144,6 +171,15 @@ void hysteresis_threshold(Mat& src, int high_thres = 200, int low_thres = 100) {
 				return 125;
 			else 
 				return 0;
-		}
-	);
+		});
+
+
+#ifdef DEBUG
+	Mat threshold_show;
+	src.convertTo(threshold_show, CV_8UC1);
+	imshow("Edge class's hysteresis_threshold() result in 8-bit (from float)", threshold_show);
+	waitKey(10);
+#endif 
+
+	return;
 }

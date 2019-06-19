@@ -11,7 +11,7 @@ constexpr auto CONSTANT = 180 / PI;
 constexpr float highThreshold = 200;
 constexpr float lowThreshold  = 100;
 
-#if 1
+#if 0
 
 #else
 	#define DEBUG
@@ -29,8 +29,8 @@ public:
 
 	Edge();
 	~Edge();
-	Mat getEdge(Mat &src);
-	Mat getEdge2(Mat& src);
+	Mat CannyEdge(Mat &src);
+	Mat cannyEdge2(Mat& src);
 private: 
 	// square root of the sum of the squares 
 	Mat calculate_Magnitude(const Mat &src1, const Mat &src2);
@@ -39,7 +39,7 @@ private:
 	
 	Mat nonMaxSuppresion(Mat& magnitude, const Mat& gradient);
 
-	void hysteresis_threshold(Mat& src, int high_thres, int low_thres);
+	void hysteresis_threshold(Mat& src, float high_thres = 200, float low_thres = 100);
 	
 };
 
