@@ -15,8 +15,8 @@ Edge::~Edge()
 
 Mat Edge::CannyEdge(Mat& src) {
 	Mat copy1, copy2;
-	this->conv2(src, copy1, sobel_horizontal);
-	this->conv2(src, copy2, sobel_vertical);
+	this->conv2<uchar>(src, copy1, sobel_horizontal);
+	this->conv2<uchar>(src, copy2, sobel_vertical);
 
 	this->magnitude = this->calculate_Magnitude(copy1, copy2);
 	this->gradient  = this->calculate_Gradients(copy1, copy2);
@@ -34,13 +34,13 @@ Mat Edge::cannyEdge2(Mat& src) {
 
 	// copy1 = G(x)
 	Mat copy1(src.rows, src.cols, CV_32FC1, cv::Scalar(0));
-	this->conv2_h(          src, copy1, this->sobel_one);
-	this->conv2_v(copy1.clone(), copy1, this->sobel_two);
+	this->conv2_h<uchar>(          src, copy1, this->sobel_one);
+	this->conv2_v<float>(copy1.clone(), copy1, this->sobel_two);
 
 	// copy2 = G(y)
 	Mat copy2(src.rows, src.cols, CV_32FC1, cv::Scalar(0));
-	this->conv2_h(          src, copy2, this->sobel_two);
-	this->conv2_v(copy2.clone(), copy2, this->sobel_one);
+	this->conv2_h<uchar>(          src, copy2, this->sobel_two);
+	this->conv2_v<float>(copy2.clone(), copy2, this->sobel_one);
 
 #ifdef DEBUG
 	Mat conv2_result;
