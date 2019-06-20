@@ -31,21 +31,26 @@ public:
 	Mat CannyEdge(Mat &src);
 	Mat cannyEdge2(Mat& src);
 private: 
-	// Square root of the sum of the squares 
-	// return a CV_32FC1 type magnitude map
-	Mat calculate_Magnitude(const Mat &src1, const Mat &src2);
-	
-	// L2 norm gradient, using atan() which is the most expensive part of this canny edge detection
-	// return a CV_32FC1 type gradient map
-	Mat calculate_Gradients(const Mat& src1, const Mat& src2);
-	
-	// 
-	Mat nonMaxSuppresion(Mat& magnitude, const Mat& gradient);
 
 
-	// In canny edge:
+	// Square root of the sum of the squares -> ( G(x)^2 + G(y)^2 )^0.5
+	// Return a CV_32FC1 type magnitude map
+	void calculate_Magnitude(const Mat &src1, const Mat &src2);
+	
+	// Using L2 norm gradient, which uses atan() for gradient calculation.
+	// The most expensive part of canny edge detection.
+	// Return a CV_32FC1 type gradient map
+	void calculate_Gradients(const Mat& src1, const Mat& src2);
+	
+	// Input: 
+	//	Magnitdue & Gradient are both in CV_32FC1 type
+	// Return a suppressed result in CV_32FC1
+	void nonMaxSuppresion(Mat& magnitude, const Mat& gradient);
+
+
 	// src is the result of non maximum suppression (CV_)
-	void hysteresis_threshold(Mat& src, float high_thres = 200, float low_thres = 100);
+	// Mat will be converted to CV_8UC1
+	Mat hysteresis_threshold(Mat& src, float high_thres = 200, float low_thres = 100);
 	
 };
 
