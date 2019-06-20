@@ -7,10 +7,11 @@ using namespace std;
 using namespace cv;
 
 constexpr auto PI = 3.14159265;
-constexpr auto CONSTANT = 180 / PI;
+constexpr auto TO_THETA = 180 / PI;
+constexpr auto OFFSET   = 0.01;
 
 
-#if 0
+#if 1
 
 #else
 	#define DEBUG

@@ -33,19 +33,21 @@ Mat Edge::CannyEdge(Mat& src, float high_thres, float low_thres) {
 Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 
 
-	Mat gx(src.rows, src.cols, CV_32FC1, cv::Scalar(0));
+	Mat gx(src.rows, src.cols, CV_32FC1);
 	this->conv2_h_sobel<uchar>(       src, gx, this->sobel_one);
 	this->conv2_v_sobel<float>(gx.clone(), gx, this->sobel_two);
 
 
-	Mat gy(src.rows, src.cols, CV_32FC1, cv::Scalar(0));
+	Mat gy(src.rows, src.cols, CV_32FC1);
 	this->conv2_h_sobel<uchar>(       src, gy, this->sobel_two);
 	this->conv2_v_sobel<float>(gy.clone(), gy, this->sobel_one);
 
 #ifdef DEBUG
-	Mat conv2_result;
-	gy.convertTo(conv2_result, CV_8UC1);
-	imshow("Canny edge G(y) in 8-bit (from float)", conv2_result);
+	Mat gy_show, gx_show;
+	gy.convertTo(gy_show, CV_8UC1);
+	gx.convertTo(gx_show, CV_8UC1);
+	imshow("Canny edge G(y) in 8-bit (from float)", gy_show);
+	imshow("Canny edge G(x) in 8-bit (from float)", gx_show);
 	waitKey(10);
 #endif 
 
@@ -65,17 +67,28 @@ Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 inline void Edge::calculate_Magnitude(const Mat& src1, const Mat& src2) {
 	if(this->magnitude.empty()) this->magnitude = Mat(src1.rows, src1.cols, CV_32FC1);
 
-	std::transform(src1.begin<float>(), src1.end<float>(), src2.begin<float>(), this->magnitude.begin<float>(), 
+	/*std::transform(src1.begin<float>(), src1.end<float>(), src2.begin<float>(), this->magnitude.begin<float>(), 
 		[](const float &s1, const float &s2) 
 		{
 			return std::sqrt(s1*s1 + s2*s2);
 		}
-	);
+	);*/
+
+	for (int i = 0; i < src1.rows; i++) {
+		const float* gx = src1.ptr<float>(i);
+		const float* gy = src2.ptr<float>(i);
+		     float* dst = this->magnitude.ptr<float>(i);
+
+		for (int j = 0; j < src1.cols; j++) {
+			dst[j] = std::sqrt(gy[j] * gy[j] + gx[j] * gx[j]);
+		}
+}
+
 
 #ifdef DEBUG
 	Mat magnitude_show;
 	this->magnitude.convertTo(magnitude_show, CV_8UC1);
-	imshow("Edge class's calculate_magnitude() result in 8-bit (from float)", magnitude_show);
+	imshow("calculate_magnitude() result in 8-bit (from float)", magnitude_show);
 	waitKey(10);
 #endif 
 
@@ -86,27 +99,49 @@ inline void Edge::calculate_Gradients(const Mat& src1, const Mat& src2) {
 	
 	if(this->gradient.empty()) this->gradient = Mat(src1.rows, src1.cols, CV_32FC1);
 
-	// src2 = G(y) & src1 = G(x)
-	std::transform(src1.begin<float>(), src1.end<float>(), src2.begin<float>(), this->gradient.begin<float>(),
-		[](const float& s1, const float& s2)
-		{
-			return std::atan(s2/s1); // G(y) / G(x)
+	//// src2 = G(y) & src1 = G(x)
+	//std::transform(src1.begin<float>(), src1.end<float>(), src2.begin<float>(), this->gradient.begin<float>(),
+	//	[](const float& s1, const float& s2)
+	//	{
+	//		//cout << std::atan(s2 / s1) << endl;
+	//		return std::atan(s2/s1); // G(y) / G(x)
+	//	}
+	//);
+
+
+	// Looping is faster than std::transform
+	for (int i = 0; i < src1.rows; i++) {
+		const float* gx = src1.ptr<float>(i);
+		const float* gy = src2.ptr<float>(i);    
+		float*      dst = this->gradient.ptr<float>(i);
+
+		// Two if statement to improve speed, atan() is expensive
+		for (int j = 0; j < src1.cols; j++) {
+			if      (gx == 0 && gy != 0)
+				dst[j] = 90;
+			else if (gx == 0 && gy == 0)
+				dst[j] = 0;
+			else 
+				dst[j] = std::atan( gy[j] / gx[j] ) * TO_THETA;
 		}
-	);
+	}
+
+
 
 #ifdef DEBUG
 	Mat gradient_show;
 	this->gradient.convertTo(gradient_show, CV_8UC1);
-	imshow("Edge class's calculate_gradient() result in 8-bit (from float)", gradient_show);
+	imshow("calculate_gradient() result in 8-bit (from float)", gradient_show);
 	waitKey(10);
 #endif 
 
+	return;
 }
 
 
 void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 	// Both magnitude & gradient are in float type
-	if(this->suppressed.empty()) this->suppressed = Mat (magnitude.rows, magnitude.cols, CV_32FC1, cv::Scalar(0));
+	if(this->suppressed.empty()) this->suppressed = Mat (magnitude.rows, magnitude.cols, CV_32FC1);
 	int rows = magnitude.rows,
 		cols = magnitude.cols;
 
@@ -116,12 +151,12 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 		const float* gra_ptr = gradient.ptr<float>(i);
 		
 		for (int j = 1; j < cols-1; j++) {
-			int         angle = gra_ptr[j]*CONSTANT;
+			int         angle = gra_ptr[j];
 			float cur_mag_val = mag_ptr[j];
 			angle = (angle < 0) ? 180 + angle : angle;
 
 			if (cur_mag_val != 0) {
-				if (angle >= 67 && angle < 112.5) {
+				if (angle >= 67 && angle < 112) {
 					// vertical direction
 					if (cur_mag_val > mag_ptr[j - cols] && cur_mag_val > mag_ptr[j + cols])
 						dst_ptr[j] = cur_mag_val;
@@ -169,16 +204,28 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 
 
 	// Using two threshold values to perform hysteresis thresholding
-	std::transform(src.begin<float>(), src.end<float>(), src.begin<float>(), 
-		[&high_thres, &low_thres] (const float &src_val) {
-			if (src_val >= high_thres) 
-				return 255;
-			else if (src_val < high_thres && src_val >= low_thres)
-				return 125;
-			else 
-				return 0;
-		});
-	src.convertTo(src, CV_8UC1);
+	//std::transform(src.begin<float>(), src.end<float>(), src.begin<float>(), 
+	//	[&high_thres, &low_thres] (const float &src_val) {
+	//		if (src_val >= high_thres) 
+	//			return 255; // Assign as strong edge pixel
+	//		else if (src_val < high_thres && src_val >= low_thres)
+	//			return 125; // Assign as potential strong edge pixel
+	//		else 
+	//			return 0;   // Suppressed to zero
+	//	});
+
+	for (int i = 0; i < src.rows; i++) {
+		float* src_ptr = src.ptr<float>(i);
+		for (int j = 0; j < src.cols; j++) {
+			if (src_ptr[j] >= high_thres)
+				src_ptr[j] = 255;
+			else if (src_ptr[j] < high_thres && src_ptr[j] >= low_thres)
+				src_ptr[j] = 125;
+			else
+				src_ptr[j] = 0;
+		}
+	}
+
 
 
 
@@ -187,15 +234,16 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	// pixel with intensity value of 255 exists. If so,
 	// that pixel can be assigned as a strong pixel with
 	// 255 intensity value. Otherwise, suppress it to 0
-	Mat dst(src.rows, src.cols, CV_8UC1, Scalar(0));
+	Mat dst(src.rows, src.cols, CV_8UC1);
 	int cols = src.cols;
 	for (int i = 1; i < src.rows-1; i++) {
 		uchar* dst_ptr = dst.ptr<uchar>(i);
-		uchar* src_ptr = src.ptr<uchar>(i);
+		float* src_ptr = src.ptr<float>(i);
 			
 		for (int j = 1; j < cols-1; j++) {
-			if (src_ptr[j] == 125) { // potential strong edge pixel
-				if (src_ptr[j - 1] == 255) dst_ptr[j] = 255;
+			if (src_ptr[j] == 0) continue;
+			else if (src_ptr[j] == 125) { // potential strong edge pixel
+				if      (src_ptr[j - 1]        == 255) dst_ptr[j] = 255;
 				else if (src_ptr[j + 1]        == 255) dst_ptr[j] = 255;
 				else if (src_ptr[j - cols]     == 255) dst_ptr[j] = 255;
 				else if (src_ptr[j + cols]     == 255) dst_ptr[j] = 255;
@@ -204,7 +252,9 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 				else if (src_ptr[j + cols + 1] == 255) dst_ptr[j] = 255;
 				else if (src_ptr[j + cols - 1] == 255) dst_ptr[j] = 255;
 			}
-			else if (src_ptr[j] == 255) dst_ptr[j] = 255;
+			else {
+				dst_ptr[j] = 255;
+			}
 		}
 	}
 
