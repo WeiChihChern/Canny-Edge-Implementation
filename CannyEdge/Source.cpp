@@ -16,7 +16,7 @@ int main() {
 
 
 	Mat img = imread("Capture.PNG", 0);
-	resize(img, img, Size(1920,1080));
+	//resize(img, img, Size(1920,1080));
 
 	GaussianBlur(img, img, Size(3, 3), 0.5);
 

@@ -12,9 +12,11 @@ constexpr auto OFFSET   = 0.01;
 
 
 #if 1
-
+	#define USE_SIMPLE_LOOP
 #else
-	#define DEBUG
+	#define DEBUG_IMSHOW_RESULT
+	// #define SHOW_GRADIENT_RESULT
+	// #define NonMaxSuppress_SHOW_THETA
 #endif
 
 
