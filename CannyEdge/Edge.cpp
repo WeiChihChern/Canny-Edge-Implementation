@@ -104,13 +104,19 @@ inline void Edge::calculate_Gradients(const Mat& src1, const Mat& src2) {
 #ifndef USE_SIMPLE_LOOP
 	// src2 = G(y) & src1 = G(x)
 	std::transform(src1.begin<float>(), src1.end<float>(), src2.begin<float>(), this->gradient.begin<float>(),
-		[](const float& s1, const float& s2)
+		[](const float& gx, const float& gy)
 		{
-			return std::atan(s2/s1); // G(y) / G(x)
-		}
-	);
+			if (gx[j] == 0 && gy[j] != 0)
+				return 90;
+			else if (gx[j] == 0 && gy[j] == 0)
+				return 0;
+			else {
+				return (std::atan(gy[j] / gx[j]) * TO_THETA);
+			}
+		);
 
 #else
+
 	// Looping is faster than std::transform
 	for (int i = 0; i < src1.rows; i++) {
 		const float* gx = src1.ptr<float>(i);
@@ -161,8 +167,8 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 			float cur_mag_val = mag_ptr[j];
 			theta = (theta < 0) ? 180 + theta : theta;
 
-#ifdef NonMaxSuppress_SHOW_THETA
-			cout << "Theta = " << theta << endl;
+#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+			cout << "Theta = " << theta;
 #endif 
 
 			if (cur_mag_val != 0) {
@@ -170,29 +176,47 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 					// vertical direction
 					if (cur_mag_val > mag_ptr[j - cols] && cur_mag_val > mag_ptr[j + cols])
 						dst_ptr[j] = cur_mag_val;
+#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+					cout << " -> [Vertical]" << endl;
+#endif
 				}
 				else if ((theta <= 22 && theta >= 0) || (theta <= 180 && theta > 157)) {
 					// horizontal direction
 					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val > mag_ptr[j + 1])
 						dst_ptr[j] = cur_mag_val;
+#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+					cout << " -> [Horizontal]" << endl;
+#endif
 				}
 				else if ((theta <= 157 && theta >= 112)) {
 					// bottom-left to top-right direction
 					if (cur_mag_val > mag_ptr[j + cols - 1] && cur_mag_val > mag_ptr[j - cols + 1])
 						dst_ptr[j] = cur_mag_val;
+#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+					cout << " -> [bl-tr]" << endl;
+#endif
 				}
 				else if ((theta < 67 && theta > 22)) {
 					// bottom-right to top-left direction
 					if (cur_mag_val > mag_ptr[j + cols + 1] && cur_mag_val > mag_ptr[j - cols - 1])
 						dst_ptr[j] = cur_mag_val;
+#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+					cout << " -> [br-tl]" << endl;
+#endif
 				}
 				else {
 					// assign NaN to zero
 					mag_ptr[j] = 0;
+#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+					cout << " -> [I shouldn't exist]" << endl;
+#endif
 				}
 			} 
 			else {
 				dst_ptr[j] = 0;
+#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+				cout << " -> [Mag == 0]" << endl;
+#endif
 			}
 		}
 	}
@@ -248,23 +272,28 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	Mat dst(src.rows, src.cols, CV_8UC1);
 	int cols = src.cols;
 	for (int i = 1; i < src.rows-1; i++) {
-		uchar* dst_ptr = dst.ptr<uchar>(i);
-		float* src_ptr = src.ptr<float>(i);
+		uchar* neighbor_result    = dst.ptr<uchar>(i);
+		float* double_thresholded = src.ptr<float>(i);
 			
 		for (int j = 1; j < cols-1; j++) {
-			if (src_ptr[j] == 0) continue;
-			else if (src_ptr[j] == 125) { // potential strong edge pixel
-				if      (src_ptr[j - 1]        == 255) dst_ptr[j] = 255;
-				else if (src_ptr[j + 1]        == 255) dst_ptr[j] = 255;
-				else if (src_ptr[j - cols]     == 255) dst_ptr[j] = 255;
-				else if (src_ptr[j + cols]     == 255) dst_ptr[j] = 255;
-				else if (src_ptr[j - cols - 1] == 255) dst_ptr[j] = 255;
-				else if (src_ptr[j - cols + 1] == 255) dst_ptr[j] = 255;
-				else if (src_ptr[j + cols + 1] == 255) dst_ptr[j] = 255;
-				else if (src_ptr[j + cols - 1] == 255) dst_ptr[j] = 255;
+			if (double_thresholded[j] == 0)        // No edge found
+			{
+				neighbor_result[j] = 0;
 			}
-			else {
-				dst_ptr[j] = 255;
+			else if (double_thresholded[j] == 125) // potential strong edge pixel
+			{ 
+				if      (double_thresholded[j - 1]        == 255) neighbor_result[j] = 255;
+				else if (double_thresholded[j + 1]        == 255) neighbor_result[j] = 255;
+				else if (double_thresholded[j - cols]     == 255) neighbor_result[j] = 255;
+				else if (double_thresholded[j + cols]     == 255) neighbor_result[j] = 255;
+				else if (double_thresholded[j - cols - 1] == 255) neighbor_result[j] = 255;
+				else if (double_thresholded[j - cols + 1] == 255) neighbor_result[j] = 255;
+				else if (double_thresholded[j + cols + 1] == 255) neighbor_result[j] = 255;
+				else if (double_thresholded[j + cols - 1] == 255) neighbor_result[j] = 255;
+			}
+			else  // Is a strong edge pixel
+			{
+				neighbor_result[j] = 255;
 			}
 		}
 	}
@@ -272,9 +301,7 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 
 
 #ifdef DEBUG_IMSHOW_RESULT
-	Mat threshold_show;
-	dst.convertTo(threshold_show, CV_8UC1);
-	imshow("Edge class's hysteresis_threshold() result in 8-bit (from float)", threshold_show);
+	imshow("Edge class's hysteresis_threshold() result in 8-bit (from float)", dst);
 	waitKey(10);
 #endif 
 
