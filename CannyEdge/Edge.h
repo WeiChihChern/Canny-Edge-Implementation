@@ -11,7 +11,7 @@ constexpr auto CONSTANT = 180 / PI;
 constexpr float highThreshold = 200;
 constexpr float lowThreshold  = 100;
 
-#if 1
+#if 0
 
 #else
 	#define DEBUG

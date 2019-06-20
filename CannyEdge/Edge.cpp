@@ -53,6 +53,9 @@ Mat Edge::cannyEdge2(Mat& src) {
 
 	this->gradient = this->calculate_Gradients(copy1, copy2);
 
+	copy1.release();
+	copy2.release();
+
 	this->suppressed = this->nonMaxSuppresion(this->magnitude, this->gradient);
 
 	this->hysteresis_threshold(suppressed);
