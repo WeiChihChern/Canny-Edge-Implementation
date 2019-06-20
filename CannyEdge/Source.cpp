@@ -25,6 +25,11 @@ int main() {
 	Mat img3; 
 	img2.convertTo(img3, CV_8UC1); // Edge result is in float type, convert it to 8-bit for display purpose only
 	imshow("separate", img3);
+	waitKey(10);
+
+	Mat cannyresult;
+	cv::Canny(img, cannyresult, 200, 100, 3,true);
+	imshow("canny", cannyresult);
 	waitKey(0);
 
 

@@ -92,7 +92,7 @@ Mat Edge::calculate_Gradients(const Mat& src1, const Mat& src2) {
 	std::transform(src1.begin<float>(), src1.end<float>(), src2.begin<float>(), result.begin<float>(),
 		[](const float& s1, const float& s2)
 		{
-			return std::round(std::atan(s2/s1) * CONSTANT); // G(y) / G(x)
+			return std::atan(s2/s1); // G(y) / G(x)
 		}
 	);
 
@@ -109,43 +109,48 @@ Mat Edge::calculate_Gradients(const Mat& src1, const Mat& src2) {
 
 Mat Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 	// Both magnitude & gradient are in float type
-	Mat result(magnitude.rows, magnitude.cols, CV_32FC1, cv::Scalar(0));
+	Mat dst(magnitude.rows, magnitude.cols, CV_32FC1, cv::Scalar(0));
 	int rows = magnitude.rows,
 		cols = magnitude.cols;
 
 	for (int i = 1; i < rows-1; i++) {
-			  float* dst_ptr = result.ptr<float>(i);
+			  float* dst_ptr = dst.ptr<float>(i);
 		      float* mag_ptr = magnitude.ptr<float>(i);
 		const float* gra_ptr = gradient.ptr<float>(i);
 		
 		for (int j = 1; j < cols-1; j++) {
-			float         angle = gra_ptr[j];
-			float cur_pixel_val = mag_ptr[j];
-			angle = (angle < 0) ? (180 + angle) : angle;
+			float       angle = gra_ptr[j]*CONSTANT;
+			float cur_mag_val = mag_ptr[j];
+			angle = (angle < 0) ? 180 + angle : angle;
 
-			if (angle >= 67.5 && angle < 112.5) {
-				// vertical direction
-				if (cur_pixel_val > mag_ptr[j - cols] && cur_pixel_val > mag_ptr[j + cols])
-					dst_ptr[j] = cur_pixel_val;
-			}
-			else if ((angle <= 22.5 && angle >= 0) || (angle <= 180 && angle > 157.5)) {
-				// horizontal direction
-				if (cur_pixel_val > mag_ptr[j - 1] && cur_pixel_val > mag_ptr[j + 1])
-					dst_ptr[j] = cur_pixel_val;
-			}
-			else if ((angle <= 157.5 && angle >= 112.5)) {
-				// bottom-left to top-right direction
-				if (cur_pixel_val > mag_ptr[j + cols - 1] && cur_pixel_val > mag_ptr[j - cols + 1])
-					dst_ptr[j] = cur_pixel_val;
-			}
-			else if ((angle < 67.5 && angle > 22.5)) {
-				// bottom-right to top-left direction
-				if (cur_pixel_val > mag_ptr[j + cols + 1] && cur_pixel_val > mag_ptr[j - cols - 1])
-					dst_ptr[j] = cur_pixel_val;
-			}
-			else { 
-				// assign NaN to zero
-				mag_ptr[j] = 0;
+			if (cur_mag_val != 0) {
+				if (angle >= 67.5 && angle < 112.5) {
+					// vertical direction
+					if (cur_mag_val > mag_ptr[j - cols] && cur_mag_val > mag_ptr[j + cols])
+						dst_ptr[j] = cur_mag_val;
+				}
+				else if ((angle <= 22.5 && angle >= 0) || (angle <= 180 && angle > 157.5)) {
+					// horizontal direction
+					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val > mag_ptr[j + 1])
+						dst_ptr[j] = cur_mag_val;
+				}
+				else if ((angle <= 157.5 && angle >= 112.5)) {
+					// bottom-left to top-right direction
+					if (cur_mag_val > mag_ptr[j + cols - 1] && cur_mag_val > mag_ptr[j - cols + 1])
+						dst_ptr[j] = cur_mag_val;
+				}
+				else if ((angle < 67.5 && angle > 22.5)) {
+					// bottom-right to top-left direction
+					if (cur_mag_val > mag_ptr[j + cols + 1] && cur_mag_val > mag_ptr[j - cols - 1])
+						dst_ptr[j] = cur_mag_val;
+				}
+				else {
+					// assign NaN to zero
+					mag_ptr[j] = 0;
+				}
+			} 
+			else {
+				dst_ptr[j] = 0;
 			}
 		}
 	}
@@ -159,7 +164,7 @@ Mat Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 #endif 
 
 
-	return result;
+	return dst;
 }
 
 
