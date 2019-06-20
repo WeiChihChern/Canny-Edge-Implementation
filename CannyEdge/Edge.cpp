@@ -13,7 +13,7 @@ Edge::~Edge()
 }
 
 
-Mat Edge::CannyEdge(Mat& src) {
+Mat Edge::CannyEdge(Mat& src, float high_thres, float low_thres) {
 	Mat copy1, copy2;
 	this->conv2<uchar>(src, copy1, sobel_horizontal);
 	this->conv2<uchar>(src, copy2, sobel_vertical);
@@ -26,26 +26,26 @@ Mat Edge::CannyEdge(Mat& src) {
 
 	this->nonMaxSuppresion(magnitude, gradient);
 
-	return suppressed;
+	return this->hysteresis_threshold(this->suppressed, high_thres, low_thres);
 }
 
 
-Mat Edge::cannyEdge2(Mat& src) {
+Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 
 
 	Mat gx(src.rows, src.cols, CV_32FC1, cv::Scalar(0));
-	this->conv2_h<uchar>(       src, gx, this->sobel_one);
-	this->conv2_v<float>(gx.clone(), gx, this->sobel_two);
+	this->conv2_h_sobel<uchar>(       src, gx, this->sobel_one);
+	this->conv2_v_sobel<float>(gx.clone(), gx, this->sobel_two);
 
 
 	Mat gy(src.rows, src.cols, CV_32FC1, cv::Scalar(0));
-	this->conv2_h<uchar>(       src, gy, this->sobel_two);
-	this->conv2_v<float>(gy.clone(), gy, this->sobel_one);
+	this->conv2_h_sobel<uchar>(       src, gy, this->sobel_two);
+	this->conv2_v_sobel<float>(gy.clone(), gy, this->sobel_one);
 
 #ifdef DEBUG
 	Mat conv2_result;
-	copy2.convertTo(conv2_result, CV_8UC1);
-	imshow("cannyEdge2's conv2d(), result of conv2_h() & conv2_v() in 8-bit (from float)", conv2_result);
+	gy.convertTo(conv2_result, CV_8UC1);
+	imshow("Canny edge G(y) in 8-bit (from float)", conv2_result);
 	waitKey(10);
 #endif 
 
@@ -57,12 +57,12 @@ Mat Edge::cannyEdge2(Mat& src) {
 
 	this->nonMaxSuppresion(this->magnitude, this->gradient);
 
-	return this->hysteresis_threshold(suppressed);
+	return this->hysteresis_threshold(suppressed, high_thres, low_thres);
 
 }
 
 
-void Edge::calculate_Magnitude(const Mat& src1, const Mat& src2) {
+inline void Edge::calculate_Magnitude(const Mat& src1, const Mat& src2) {
 	if(this->magnitude.empty()) this->magnitude = Mat(src1.rows, src1.cols, CV_32FC1);
 
 	std::transform(src1.begin<float>(), src1.end<float>(), src2.begin<float>(), this->magnitude.begin<float>(), 
@@ -82,7 +82,7 @@ void Edge::calculate_Magnitude(const Mat& src1, const Mat& src2) {
 }
 
 
-void Edge::calculate_Gradients(const Mat& src1, const Mat& src2) {
+inline void Edge::calculate_Gradients(const Mat& src1, const Mat& src2) {
 	
 	if(this->gradient.empty()) this->gradient = Mat(src1.rows, src1.cols, CV_32FC1);
 
@@ -116,27 +116,27 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 		const float* gra_ptr = gradient.ptr<float>(i);
 		
 		for (int j = 1; j < cols-1; j++) {
-			float       angle = gra_ptr[j]*CONSTANT;
+			int         angle = gra_ptr[j]*CONSTANT;
 			float cur_mag_val = mag_ptr[j];
 			angle = (angle < 0) ? 180 + angle : angle;
 
 			if (cur_mag_val != 0) {
-				if (angle >= 67.5 && angle < 112.5) {
+				if (angle >= 67 && angle < 112.5) {
 					// vertical direction
 					if (cur_mag_val > mag_ptr[j - cols] && cur_mag_val > mag_ptr[j + cols])
 						dst_ptr[j] = cur_mag_val;
 				}
-				else if ((angle <= 22.5 && angle >= 0) || (angle <= 180 && angle > 157.5)) {
+				else if ((angle <= 22 && angle >= 0) || (angle <= 180 && angle > 157)) {
 					// horizontal direction
 					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val > mag_ptr[j + 1])
 						dst_ptr[j] = cur_mag_val;
 				}
-				else if ((angle <= 157.5 && angle >= 112.5)) {
+				else if ((angle <= 157 && angle >= 112)) {
 					// bottom-left to top-right direction
 					if (cur_mag_val > mag_ptr[j + cols - 1] && cur_mag_val > mag_ptr[j - cols + 1])
 						dst_ptr[j] = cur_mag_val;
 				}
-				else if ((angle < 67.5 && angle > 22.5)) {
+				else if ((angle < 67 && angle > 22)) {
 					// bottom-right to top-left direction
 					if (cur_mag_val > mag_ptr[j + cols + 1] && cur_mag_val > mag_ptr[j - cols - 1])
 						dst_ptr[j] = cur_mag_val;

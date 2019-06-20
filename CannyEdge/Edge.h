@@ -10,7 +10,7 @@ constexpr auto PI = 3.14159265;
 constexpr auto CONSTANT = 180 / PI;
 
 
-#if 1
+#if 0
 
 #else
 	#define DEBUG
@@ -28,19 +28,19 @@ public:
 
 	Edge();
 	~Edge();
-	Mat CannyEdge(Mat &src);
-	Mat cannyEdge2(Mat& src);
+	Mat CannyEdge(Mat &src, float high_thres = 200, float low_thres = 100);
+	Mat cannyEdge2(Mat& src, float high_thres = 200, float low_thres = 100);
 private: 
 
 
 	// Square root of the sum of the squares -> ( G(x)^2 + G(y)^2 )^0.5
 	// Return a CV_32FC1 type magnitude map
-	void calculate_Magnitude(const Mat &src1, const Mat &src2);
+	inline void calculate_Magnitude(const Mat &src1, const Mat &src2);
 	
 	// Using L2 norm gradient, which uses atan() for gradient calculation.
 	// The most expensive part of canny edge detection.
 	// Return a CV_32FC1 type gradient map
-	void calculate_Gradients(const Mat& src1, const Mat& src2);
+	inline void calculate_Gradients(const Mat& src1, const Mat& src2);
 	
 	// Input: 
 	//	Magnitdue & Gradient are both in CV_32FC1 type

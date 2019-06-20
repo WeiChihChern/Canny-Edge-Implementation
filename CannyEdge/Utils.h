@@ -139,6 +139,50 @@ public:
 
 
 	template<typename src_type, typename kernel_type>
+	void conv2_v_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
+
+		// Params check
+		if (src.empty() || src.channels() == 3) {
+			cout << "conv2_v() input error.\n";
+			return;
+		}
+		if (kernel.size() % 2 == 0) {
+			cout << "conv2_v() kernel size error. \n";
+			return;
+		}
+
+
+		// Inits
+		if (dst.empty()) dst = Mat(src.rows, src.cols, CV_32FC1);
+
+		int k_size = kernel.size(),
+			src_rows = src.rows,
+			src_cols = src.cols;
+
+		int offset_row = k_size / 2;
+		int k_idx = -offset_row;
+
+
+		// Start looping
+		for (int i = offset_row; i < (src.rows - offset_row); i++) {
+
+
+			for (int j = 0; j < src_cols; j++) {
+				const src_type* src_ptr = src.ptr<src_type>(i) + j;
+				float* dst_ptr = dst.ptr<float>(i) + j;
+				
+
+				float sum = src_ptr[-src_cols] * kernel[0];
+				sum += src_ptr[0]         * kernel[1];
+				sum += src_ptr[src_cols]  * kernel[2];
+
+				*dst_ptr = sum;
+			}
+		}
+	};
+
+
+	template<typename src_type, typename kernel_type>
 	void conv2_h(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
 		
 		// Params check
@@ -192,6 +236,49 @@ public:
 		}
 	
 	};
+
+
+
+	template<typename src_type, typename kernel_type>
+	void conv2_h_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
+
+		// Params check
+		if (src.empty() || src.channels() == 3) {
+			cout << "conv2_h() input error.\n";
+			return;
+		}
+		if (kernel.size() % 2 == 0) {
+			cout << "conv2_v() kernel size error. \n";
+			return;
+		}
+
+
+		// Inits
+		if (dst.empty()) dst = Mat(src.rows, src.cols, CV_32FC1);
+
+		int k_size = kernel.size(),
+			src_rows = src.rows,
+			src_cols = src.cols;
+
+		int offset_col = k_size / 2;
+		int k_idx = -offset_col;
+
+		for (int i = 0; i < src_rows; i++) {
+			const src_type* src_ptr = src.ptr<src_type>(i);
+			float* dst_ptr = dst.ptr<float>(i);
+
+			for (int j = offset_col; j < (src_cols - offset_col); j++) {
+				
+				float sum = src_ptr[j - 1]  * kernel[0];
+				sum      += src_ptr[j]      * kernel[1];
+				sum      += src_ptr[j + 1]  * kernel[2];
+
+				dst_ptr[j] = sum;
+			}
+		}
+
+	};
+
 
 
 };
