@@ -21,7 +21,8 @@ int main() {
 	GaussianBlur(img, img, Size(3, 3), 0.5);
 
 	Edge tool;
-	imshow("separate", tool.cannyEdge2(img));
+	Mat my_result = tool.cannyEdge2(img);
+	imshow("separate", my_result);
 	waitKey(10);
 
 	Mat cannyresult;
