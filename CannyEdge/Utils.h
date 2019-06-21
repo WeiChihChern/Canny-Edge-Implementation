@@ -21,7 +21,7 @@ public:
 	//     Ex: uchar -> CV_8UC1, 
 	//         float -> CV_32FC1,
 	//         double-> CV_64FC1
-	template<typename src_type, typename kernel_type>
+	template<typename src_type, typename dst_type, typename kernel_type>
 	void conv2(const Mat& src, Mat& dst, const vector<vector<kernel_type>>& kernel) {
 		
 		// Params check
@@ -51,7 +51,7 @@ public:
 
 		// Start looping process
 		for (int i = offset_row; i < src_rows - offset_row; i++) {
-			float* dst_ptr = dst.ptr<float>(i);
+			dst_type* dst_ptr = dst.ptr<dst_type>(i);
 
 			for (int j = offset_col; j < src_cols - offset_col; j++) {
 
@@ -82,7 +82,7 @@ public:
 		conv2_h() is for 1-D kernel like 1x3, 1x5, 1xN kernel
 	*/
 	
-	template<typename src_type, typename kernel_type>
+	template<typename src_type, typename dst_type, typename kernel_type>
 	void conv2_v(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
 		
 		// Params check
@@ -113,7 +113,7 @@ public:
 
 			for (int j = 0; j < src_cols; j++) {
 				const src_type* src_ptr = src.ptr<src_type>(i) + j;
-				         float* dst_ptr = dst.ptr<float>(i) + j;
+				      dst_type* dst_ptr = dst.ptr<dst_type>(i) + j;
 				         float  sum     = 0;
 
 				//std::for_each(kernel.begin(), kernel.end(),
@@ -138,7 +138,7 @@ public:
 	};
 
 
-	template<typename src_type, typename kernel_type>
+	template<typename src_type, typename dst_type, typename kernel_type>
 	void conv2_v_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
 
 		// Params check
@@ -169,7 +169,7 @@ public:
 
 			for (int j = 0; j < src_cols; j++) {
 				const src_type* src_ptr = src.ptr<src_type>(i) + j;
-				float* dst_ptr = dst.ptr<float>(i) + j;
+					  dst_type* dst_ptr = dst.ptr<dst_type>(i) + j;
 				
 
 				float sum = src_ptr[-src_cols] * kernel[0];
@@ -182,7 +182,7 @@ public:
 	};
 
 
-	template<typename src_type, typename kernel_type>
+	template<typename src_type, typename dst_type, typename kernel_type>
 	void conv2_h(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
 		
 		// Params check
@@ -208,7 +208,7 @@ public:
 
 		for (int i = 0; i < src_rows; i++) {
 			const src_type* src_ptr = src.ptr<src_type>(i);
-			         float* dst_ptr = dst.ptr<float>(i);
+			      dst_type* dst_ptr = dst.ptr<dst_type>(i);
 
 			for (int j = offset_col; j < (src_cols - offset_col); j++) {
 
@@ -239,7 +239,7 @@ public:
 
 
 
-	template<typename src_type, typename kernel_type>
+	template<typename src_type, typename dst_type, typename kernel_type>
 	void conv2_h_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
 
 		// Params check
@@ -265,7 +265,7 @@ public:
 
 		for (int i = 0; i < src_rows; i++) {
 			const src_type* src_ptr = src.ptr<src_type>(i);
-			float* dst_ptr = dst.ptr<float>(i);
+				  dst_type* dst_ptr = dst.ptr<dst_type>(i);
 
 			for (int j = offset_col; j < (src_cols - offset_col); j++) {
 				

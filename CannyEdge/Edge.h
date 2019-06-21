@@ -12,7 +12,7 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 //constexpr auto OFFSET   = 0.01;      
 
 
-#if 1
+#if 0
 	// for-loop is faster (tested on VS Studio 2019 with OpenCV 4.0.1)
 	// Disable this will use std::transform + lambda for looping instead
 	#define USE_SIMPLE_LOOP 
@@ -64,11 +64,46 @@ private:
 	// Store the magnitude result in the class member variable 'magnitude' (float-type)
 	inline void calculate_Magnitude(const Mat &src1, const Mat &src2);
 	
+
+
 	// Using L2 norm gradient, which uses atan() for gradient calculation.
 	// The most expensive part of canny edge detection.
 	// Return a CV_32FC1 type gradient map
-	inline void calculate_Gradients(const Mat& src1, const Mat& src2);
-	
+	template <typename src1_type, typename src2_type>
+	inline void calculate_Magnitude(const Mat& src1, const Mat& src2) {
+		if (this->magnitude.empty()) this->magnitude = Mat(src1.rows, src1.cols, CV_32FC1);
+
+#ifndef USE_SIMPLE_LOOP
+		std::transform(src1.begin<src1_type>(), src1.end<src1_type>(), src2.begin<src2_type>(), this->magnitude.begin<float>(),
+			[](const src1_type& s1, const src2_type& s2)
+			{
+				return std::sqrt(s1 * s1 + s2 * s2);
+			}
+		);
+#else
+		for (int i = 0; i < src1.rows; i++) {
+			const src1_type* gx = src1.ptr<src1_type>(i);
+			const src2_type* gy = src2.ptr<src2_type>(i);
+			float* dst = this->magnitude.ptr<float>(i);
+
+			for (int j = 0; j < src1.cols; j++) {
+				dst[j] = std::sqrt(gy[j] * gy[j] + gx[j] * gx[j]);
+			}
+		}
+#endif
+
+
+#ifdef DEBUG_IMSHOW_RESULT
+		Mat magnitude_show;
+		this->magnitude.convertTo(magnitude_show, CV_8UC1);
+		imshow("calculate_magnitude() result in 8-bit (from float)", magnitude_show);
+		waitKey(10);
+#endif 
+
+	}
+
+
+
 	// Input: 
 	//	Magnitdue & Gradient are both in CV_32FC1 type
 	// Return a suppressed result in CV_32FC1

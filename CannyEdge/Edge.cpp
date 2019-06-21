@@ -15,8 +15,8 @@ Edge::~Edge()
 
 Mat Edge::CannyEdge(Mat& src, float high_thres, float low_thres) {
 	Mat copy1, copy2;
-	this->conv2<uchar>(src, copy1, sobel_horizontal);
-	this->conv2<uchar>(src, copy2, sobel_vertical);
+	this->conv2<uchar, short>(src, copy1, sobel_horizontal);
+	this->conv2<uchar, short>(src, copy2, sobel_vertical);
 
 	this->calculate_Magnitude(copy1, copy2);
 	this->calculate_Gradients(copy1, copy2);
@@ -33,14 +33,14 @@ Mat Edge::CannyEdge(Mat& src, float high_thres, float low_thres) {
 Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 
 
-	Mat gx(src.rows, src.cols, CV_32FC1);
-	this->conv2_h_sobel<uchar>(       src, gx, this->sobel_one);
-	this->conv2_v_sobel<float>(gx.clone(), gx, this->sobel_two);
+	Mat gx(src.rows, src.cols, CV_16SC1); // Short type
+	this->conv2_h_sobel<uchar, short>(       src, gx, this->sobel_one);
+	this->conv2_v_sobel<short, short>(gx.clone(), gx, this->sobel_two);
 
-
-	Mat gy(src.rows, src.cols, CV_32FC1);
-	this->conv2_h_sobel<uchar>(       src, gy, this->sobel_two);
-	this->conv2_v_sobel<float>(gy.clone(), gy, this->sobel_one);
+	
+	Mat gy(src.rows, src.cols, CV_16SC1); // Short type
+	this->conv2_h_sobel<uchar, short>(       src, gy, this->sobel_two);
+	this->conv2_v_sobel<short, short>(gy.clone(), gy, this->sobel_one);
 
 #ifdef DEBUG_IMSHOW_RESULT
 	Mat gy_show, gx_show;
@@ -64,37 +64,8 @@ Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 }
 
 
-inline void Edge::calculate_Magnitude(const Mat& src1, const Mat& src2) {
-	if(this->magnitude.empty()) this->magnitude = Mat(src1.rows, src1.cols, CV_32FC1);
-
-#ifndef USE_SIMPLE_LOOP
-	std::transform(src1.begin<float>(), src1.end<float>(), src2.begin<float>(), this->magnitude.begin<float>(), 
-		[](const float &s1, const float &s2) 
-		{
-			return std::sqrt(s1*s1 + s2*s2);
-		}
-	);
-#else
-	for (int i = 0; i < src1.rows; i++) {
-		const float* gx = src1.ptr<float>(i);
-		const float* gy = src2.ptr<float>(i);
-		     float* dst = this->magnitude.ptr<float>(i);
-
-		for (int j = 0; j < src1.cols; j++) {
-			dst[j] = std::sqrt(gy[j] * gy[j] + gx[j] * gx[j]);
-		}
-	}
-#endif
 
 
-#ifdef DEBUG_IMSHOW_RESULT
-	Mat magnitude_show;
-	this->magnitude.convertTo(magnitude_show, CV_8UC1);
-	imshow("calculate_magnitude() result in 8-bit (from float)", magnitude_show);
-	waitKey(10);
-#endif 
-
-}
 
 
 inline void Edge::calculate_Gradients(const Mat& src1, const Mat& src2) {
