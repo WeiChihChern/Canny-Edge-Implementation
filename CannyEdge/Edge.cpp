@@ -51,8 +51,9 @@ Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 	waitKey(10);
 #endif 
 
-	// Save magnitude result in 8-bits 
+	// Save magnitude result in unsigned char (uchar) 
 	this->calculate_Magnitude<short, short>(gx, gy, true);
+	// Save gradient result in signed char (schar)
 	this->calculate_Gradients<short, short>(gx, gy);
 
 	gx.release();
@@ -67,34 +68,47 @@ Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 
 
 
-
+// In canny edge case:
+//	Magnitude is in unsigned char type
+//	Gradient is in signed char type
 void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 	// Both magnitude & gradient are in float type
-	if(this->suppressed.empty()) this->suppressed = Mat (magnitude.rows, magnitude.cols, CV_32FC1);
+	if(this->suppressed.empty()) this->suppressed = Mat (magnitude.rows, magnitude.cols, CV_8UC1, Scalar(0));
 	int rows = magnitude.rows,
 		cols = magnitude.cols;
 
 	for (int i = 1; i < rows-1; i++) {
-			  float* dst_ptr = this->suppressed.ptr<float>(i);
-		      float* mag_ptr = magnitude.ptr<float>(i);
-		const float* gra_ptr = gradient.ptr<float>(i);
+			  uchar* dst_ptr = this->suppressed.ptr<uchar>(i);
+		      uchar* mag_ptr = magnitude.ptr<uchar>(i);
+		const schar* gra_ptr = gradient.ptr<schar>(i);
 		
 		for (int j = 1; j < cols-1; j++) {
-			int         theta = gra_ptr[j];
-			float cur_mag_val = mag_ptr[j];
+			short       theta = gra_ptr[j];
+			uchar cur_mag_val = mag_ptr[j];
 			theta = (theta < 0) ? 180 + theta : theta;
 
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-			cout << "( Theta = " << theta << " , Magnitude = " << cur_mag_val << " )";
+			bool suppressed_to_zero = false;
+			cout << "( Theta = " << theta << " , Magnitude = " << (int)cur_mag_val << " )";
 #endif 
 
 			if (cur_mag_val != 0) {
 				if (theta >= 67 && theta <= 112) {
 					// vertical direction
-					if (cur_mag_val > mag_ptr[j - cols] && cur_mag_val > mag_ptr[j + cols])
+					if (cur_mag_val > mag_ptr[j - cols] && cur_mag_val > mag_ptr[j + cols]) {
 						dst_ptr[j] = cur_mag_val;
+					} 
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					cout << " -> [Check vertical]" << endl;
+					else {
+						suppressed_to_zero = true;
+					}
+					cout << " -> [Check vertical : (j-cols = " << (int)mag_ptr[j - cols] << " , ";
+					cout << "j+cols = " << (int)mag_ptr[j + cols] << ") ";
+					cout << "Action -> ";
+					if (suppressed_to_zero)
+						cout << "[Suppressed to Zero]\n";
+					else
+						cout << "[Not suppressed]\n";		
 #endif
 				}
 				else if ((theta <= 22 && theta >= 0) || (theta <= 180 && theta >= 157)) {
@@ -102,23 +116,50 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val > mag_ptr[j + 1])
 						dst_ptr[j] = cur_mag_val;
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					cout << " -> [Check horizontal]" << endl;
+					else {
+						suppressed_to_zero = true;
+					}
+					cout << " -> [Check horizontal : (j-1 = " << (int)mag_ptr[j - 1] << " , ";
+					cout << "j+1 = " << (int)mag_ptr[j + 1] << ") ";
+					cout << "Action -> ";
+					if (suppressed_to_zero)
+						cout << "[Suppressed to Zero]\n";
+					else
+						cout << "[Not suppressed]\n";
 #endif
 				}
 				else if ((theta < 157 && theta > 112)) {
 					// bottom-left to top-right direction
-					if (cur_mag_val > mag_ptr[j + cols - 1] && cur_mag_val > mag_ptr[j - cols + 1])
+					if (cur_mag_val > mag_ptr[j + cols + 1] && cur_mag_val > mag_ptr[j - cols - 1])
 						dst_ptr[j] = cur_mag_val;
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					cout << " -> [Check bl-tr]" << endl;
+					else {
+						suppressed_to_zero = true;
+					}
+					cout << " -> [Check bl-tr : (j+cols-1 = " << (int)mag_ptr[j + cols - 1] << " , ";
+					cout << "j-cols+1 = " << (int)mag_ptr[j - cols + 1] << ") ";
+					cout << "Action -> ";
+					if (suppressed_to_zero)
+						cout << "[Suppressed to Zero]\n";
+					else
+						cout << "[Not suppressed]\n";
 #endif
 				}
 				else {
 					// bottom-right to top-left direction
-					if (cur_mag_val > mag_ptr[j + cols + 1] && cur_mag_val > mag_ptr[j - cols - 1])
+					if (cur_mag_val > mag_ptr[j + cols - 1] && cur_mag_val > mag_ptr[j - cols + 1])
 						dst_ptr[j] = cur_mag_val;
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					cout << " -> [Check br-tl]" << endl;
+					else {
+						suppressed_to_zero = true;
+					}
+					cout << " -> [Check br-tl : (j+cols+1 = " << (int)mag_ptr[j + 1 + cols] << " , ";
+					cout << "j-cols-1 = " << (int)mag_ptr[j - 1 - cols] << ") ";
+					cout << "Action -> ";
+					if (suppressed_to_zero)
+						cout << "[Suppressed to Zero]\n";
+					else
+						cout << "[Not suppressed]\n";
 #endif
 				}
 			} 
@@ -133,12 +174,13 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 
 
 #ifdef DEBUG_IMSHOW_RESULT
-	Mat suppressed_show;
-	this->suppressed.convertTo(suppressed_show, CV_8UC1);
-	imshow("Edge class's nonMaxSuppression() result in 8-bit (from float)", suppressed_show);
+	imshow("Edge class's nonMaxSuppression() result in 8-bit (from float)", this->suppressed);
 	waitKey(10);
 #endif 
 
+	//remove me
+	Mat temp = this->suppressed.clone();
+	return;
 }
 
 

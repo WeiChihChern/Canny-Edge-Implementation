@@ -26,7 +26,7 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 	#define DEBUG_IMSHOW_RESULT
 	#define USE_SIMPLE_LOOP 
 	// #define DEBUG_SHOW_GRADIENT_RESULT
-	// #define DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
+	//#define DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 	// #define DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 #endif
 
@@ -64,6 +64,7 @@ private:
 	// Output calculation into float-type Mat
 	template <typename src1_type, typename src2_type>
 	inline void calculate_Magnitude(const Mat& src1, const Mat& src2, bool To_8bits = false) {
+
 		if (this->magnitude.empty()) this->magnitude = Mat(src1.rows, src1.cols, CV_32FC1);
 
 #ifndef USE_SIMPLE_LOOP
@@ -120,15 +121,15 @@ private:
 
 #ifndef USE_SIMPLE_LOOP
 		// src2 = G(y) & src1 = G(x)
-		std::transform(src1.begin<float>(), src1.end<float>(), src2.begin<float>(), this->gradient.begin<float>(),
-			[](const float& gx, const float& gy)
+		std::transform(src1.begin<src1_type>(), src1.end<src1_type>(), src2.begin<src2_type>(), this->gradient.begin<schar>(),
+			[](const src1_type& gx, const src2_type& gy)
 			{
 				if (gx[j] == 0 && gy[j] != 0)
-					return 90;
+					return (schar)90;
 				else if (gx[j] == 0 && gy[j] == 0)
-					return 0;
+					return (schar)0;
 				else {
-					return (std::atan(gy[j] / gx[j]) * TO_THETA);
+					return (schar)(std::atan(gy[j] / gx[j]) * TO_THETA);
 				}
 				);
 
@@ -143,29 +144,30 @@ private:
 			// Two if statement to improve speed, atan() is expensive
 			for (int j = 0; j < src1.cols; j++) {
 				if (gx[j] == 0 && gy[j] != 0)
-					dst[j] = 90;
+					dst[j] = (schar)90;
 				else if (gx[j] == 0 && gy[j] == 0)
-					dst[j] = 0;
+					dst[j] = (schar)0;
 				else {
 #ifdef DEBUG_SHOW_GRADIENT_RESULT
-					cout << std::atan(gy[j] / gx[j]) << " : y=" << gy[j] << ", x=" << gx[j] << endl;
+					cout sd<< std::atan(gy[j] / gx[j]) << " : y=" << gy[j] << ", x=" << gx[j] << endl;
 #endif
-					dst[j] = std::atan(gy[j] / gx[j]) * TO_THETA;
+					dst[j] = (schar)std::atan(gy[j] / gx[j]) * TO_THETA;
 				}
 			}
 		}
 
-		double mi, max;
-		minMaxLoc(this->gradient, &mi, &max);
+		////remove me
+		//double mi, max;
+		//minMaxLoc(this->gradient, &mi, &max);
 
 #endif // USE_SIMPLE_LOOPDEBUG
 
 
-#ifdef DEBUG_IMSHOW_RESULT
-		Mat gradient_show;
+#ifdef DEBUG_IMSHOW_RESULT // No much info to visualize gradient
+		/*Mat gradient_show;
 		this->gradient.convertTo(gradient_show, CV_8UC1);
 		imshow("calculate_gradient() result in 8-bit (from float)", gradient_show);
-		waitKey(10);
+		waitKey(10);*/
 #endif 
 
 		return;
