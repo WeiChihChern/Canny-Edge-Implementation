@@ -21,25 +21,13 @@ int main() {
 	GaussianBlur(img, img, Size(3, 3), 0.5);
 
 	Edge tool;
-	Mat img2 = tool.cannyEdge2(img);
-
-	Mat img3; 
-	img2.convertTo(img3, CV_8UC1); // Edge result is in float type, convert it to 8-bit for display purpose only
-	imshow("separate", img3);
+	imshow("separate", tool.cannyEdge2(img));
 	waitKey(10);
 
 	Mat cannyresult;
 	cv::Canny(img, cannyresult, 200, 100, 3,true);
 	imshow("canny", cannyresult);
 	waitKey(0);
-
-
-
-	Mat normal = tool.CannyEdge(img);
-	Mat new_normal;
-	normal.convertTo(new_normal, CV_8UC1);
-	imshow("normal", new_normal);
-	waitKey(10);
 
 	return 0;
 }
