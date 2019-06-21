@@ -1,9 +1,9 @@
 # Canny-Edge-Implementation
 #### (My own implementation on Canny Edge without any acceleration library)
 
-In Edge.h, there are two class member functions to do canny edge detection: *cannyEdge()* & *cannyEdge2()*
+In Edge.h, there are two class member functions to do canny edge detection: *cannyEdge() & cannyEdge2()*
 
-*cannyEdge2()* is a optimized version of cannyEdge() in 2D convolution process, it separates the sobel kernel into two smaller kernels for faster convolution process and reduces one for-loop.
+*cannyEdge2()* is an optimized version of cannyEdge() in 2D convolution process, it separates the sobel kernel into two smaller kernels for faster convolution process and reduces one for-loop.
 
 
 Comparing to OpenCV's implementation *cv::Canny()*, *cannyEdge2()* runs around 1~3ms slower on a 371x637 image. Before tweaking my code, it took like 18ms.
