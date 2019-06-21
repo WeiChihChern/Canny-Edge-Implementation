@@ -61,7 +61,7 @@ private:
 
 	// Square root of the sum of the squares -> ( G(x)^2 + G(y)^2 )^0.5
 	// Two inputs, src1 & src2 are two short-type sobel filtered result.
-	// Store the magnitude result in the class member variable 'magnitude' (float-type)
+	// Output calculation into float-type Mat
 	template <typename src1_type, typename src2_type>
 	inline void calculate_Magnitude(const Mat& src1, const Mat& src2, bool To_8bits = false) {
 		if (this->magnitude.empty()) this->magnitude = Mat(src1.rows, src1.cols, CV_32FC1);
@@ -86,16 +86,22 @@ private:
 #endif
 
 
-#ifdef DEBUG_IMSHOW_RESULT
-		Mat magnitude_show;
-		this->magnitude.convertTo(magnitude_show, CV_8UC1);
-		imshow("calculate_magnitude() result in 8-bit (from float)", magnitude_show);
-		waitKey(10);
-#endif 
-
 		if (To_8bits)
 			this->magnitude.convertTo(this->magnitude, CV_8UC1);
 
+
+#ifdef DEBUG_IMSHOW_RESULT
+		if (this->magnitude.depth() != CV_8UC1) {
+			Mat magnitude_show;
+			this->magnitude.convertTo(magnitude_show, CV_8UC1);
+			imshow("calculate_magnitude() result in 8-bit (from float)", magnitude_show);
+		}
+		else {
+			imshow(imshow("calculate_magnitude() result in 8-bit (from float)", this->magnitude);)
+		}
+		waitKey(10);
+
+#endif 
 
 		return;
 	};
