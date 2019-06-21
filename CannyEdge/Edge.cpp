@@ -168,7 +168,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 			theta = (theta < 0) ? 180 + theta : theta;
 
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-			cout << "Theta = " << theta;
+			cout << "( Theta = " << theta << " , Magnitude = " << cur_mag_val << " )";
 #endif 
 
 			if (cur_mag_val != 0) {
@@ -177,7 +177,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 					if (cur_mag_val > mag_ptr[j - cols] && cur_mag_val > mag_ptr[j + cols])
 						dst_ptr[j] = cur_mag_val;
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					cout << " -> [Vertical]" << endl;
+					cout << " -> [Check vertical]" << endl;
 #endif
 				}
 				else if ((theta <= 22 && theta >= 0) || (theta <= 180 && theta >= 157)) {
@@ -185,7 +185,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val > mag_ptr[j + 1])
 						dst_ptr[j] = cur_mag_val;
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					cout << " -> [Horizontal]" << endl;
+					cout << " -> [Check horizontal]" << endl;
 #endif
 				}
 				else if ((theta < 157 && theta > 112)) {
@@ -193,7 +193,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 					if (cur_mag_val > mag_ptr[j + cols - 1] && cur_mag_val > mag_ptr[j - cols + 1])
 						dst_ptr[j] = cur_mag_val;
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					cout << " -> [bl-tr]" << endl;
+					cout << " -> [Check bl-tr]" << endl;
 #endif
 				}
 				else {
@@ -201,7 +201,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 					if (cur_mag_val > mag_ptr[j + cols + 1] && cur_mag_val > mag_ptr[j - cols - 1])
 						dst_ptr[j] = cur_mag_val;
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					cout << " -> [br-tl]" << endl;
+					cout << " -> [Check br-tl]" << endl;
 #endif
 				}
 			} 

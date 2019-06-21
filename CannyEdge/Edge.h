@@ -12,13 +12,13 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 //constexpr auto OFFSET   = 0.01;      
 
 
-#if 0
+#if 1
 	// for-loop is faster (tested on VS Studio 2019 with OpenCV 4.0.1)
 	// Disable this will use std::transform + lambda for looping instead
 	#define USE_SIMPLE_LOOP 
 
 	//#define DEBUG_SHOW_GRADIENT_RESULT
-	//#define DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
+	#define DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 	//#define DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 #else
 	// Enable this will imshow conv2D, manitude, gradient, nonMax & thresholding 
