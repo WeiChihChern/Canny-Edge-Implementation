@@ -18,7 +18,7 @@ Mat Edge::CannyEdge(Mat& src, float high_thres, float low_thres) {
 	this->conv2<uchar, short>(src, copy1, sobel_horizontal);
 	this->conv2<uchar, short>(src, copy2, sobel_vertical);
 
-	this->calculate_Magnitude(copy1, copy2);
+	this->calculate_Magnitude<short,short>(copy1, copy2);
 	this->calculate_Gradients(copy1, copy2);
 	
 	copy1.release();
