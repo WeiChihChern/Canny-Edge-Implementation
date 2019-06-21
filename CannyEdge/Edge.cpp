@@ -51,7 +51,7 @@ Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 	waitKey(10);
 #endif 
 
-	this->calculate_Magnitude<short, short>(gx, gy, true);
+	this->calculate_Magnitude<short, short>(gx, gy, false);
 	this->calculate_Gradients(gx, gy);
 
 	gx.release();

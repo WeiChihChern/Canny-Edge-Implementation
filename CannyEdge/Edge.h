@@ -97,7 +97,7 @@ private:
 			imshow("calculate_magnitude() result in 8-bit (from float)", magnitude_show);
 		}
 		else {
-			imshow(imshow("calculate_magnitude() result in 8-bit (from float)", this->magnitude);)
+			imshow("calculate_magnitude() result in 8-bit (from float)", this->magnitude);
 		}
 		waitKey(10);
 
