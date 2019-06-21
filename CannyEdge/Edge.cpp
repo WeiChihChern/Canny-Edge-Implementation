@@ -19,7 +19,7 @@ Mat Edge::CannyEdge(Mat& src, float high_thres, float low_thres) {
 	this->conv2<uchar, short>(src, copy2, sobel_vertical);
 
 	this->calculate_Magnitude<short,short>(copy1, copy2);
-	this->calculate_Gradients(copy1, copy2);
+	this->calculate_Gradients<short, short>(copy1, copy2);
 	
 	copy1.release();
 	copy2.release();
@@ -51,8 +51,9 @@ Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 	waitKey(10);
 #endif 
 
-	this->calculate_Magnitude<short, short>(gx, gy, false);
-	this->calculate_Gradients(gx, gy);
+	// Save magnitude result in 8-bits 
+	this->calculate_Magnitude<short, short>(gx, gy, true);
+	this->calculate_Gradients<short, short>(gx, gy);
 
 	gx.release();
 	gy.release();
@@ -65,60 +66,6 @@ Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 
 
 
-
-
-inline void Edge::calculate_Gradients(const Mat& src1, const Mat& src2) {
-	
-	if(this->gradient.empty()) this->gradient = Mat(src1.rows, src1.cols, CV_32FC1);
-
-#ifndef USE_SIMPLE_LOOP
-	// src2 = G(y) & src1 = G(x)
-	std::transform(src1.begin<float>(), src1.end<float>(), src2.begin<float>(), this->gradient.begin<float>(),
-		[](const float& gx, const float& gy)
-		{
-			if (gx[j] == 0 && gy[j] != 0)
-				return 90;
-			else if (gx[j] == 0 && gy[j] == 0)
-				return 0;
-			else {
-				return (std::atan(gy[j] / gx[j]) * TO_THETA);
-			}
-		);
-
-#else
-
-	// Looping is faster than std::transform
-	for (int i = 0; i < src1.rows; i++) {
-		const float* gx = src1.ptr<float>(i);
-		const float* gy = src2.ptr<float>(i);    
-		float*      dst = this->gradient.ptr<float>(i);
-
-		// Two if statement to improve speed, atan() is expensive
-		for (int j = 0; j < src1.cols; j++) {
-			if      (gx[j] == 0 && gy[j] != 0)
-				dst[j] = 90;
-			else if (gx[j] == 0 && gy[j] == 0)
-				dst[j] = 0;
-			else {
-#ifdef DEBUG_SHOW_GRADIENT_RESULT
-				cout << std::atan(gy[j] / gx[j]) << " : y=" << gy[j] << ", x=" << gx[j] << endl;
-#endif
-				dst[j] = std::atan(gy[j] / gx[j]) * TO_THETA;
-			}
-		}
-	}
-#endif // USE_SIMPLE_LOOPDEBUG
-
-
-#ifdef DEBUG_IMSHOW_RESULT
-	Mat gradient_show;
-	this->gradient.convertTo(gradient_show, CV_8UC1);
-	imshow("calculate_gradient() result in 8-bit (from float)", gradient_show);
-	waitKey(10);
-#endif 
-
-	return;
-}
 
 
 void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {

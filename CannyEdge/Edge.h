@@ -112,7 +112,64 @@ private:
 	// Using L2 norm gradient, which uses atan() for gradient calculation.
 	// The most expensive part of canny edge detection.
 	// Return a CV_32FC1 type gradient map
-	inline void calculate_Gradients(const Mat& src1, const Mat& src2);
+	template <typename src1_type, typename src2_type>
+	inline void calculate_Gradients(const Mat& src1, const Mat& src2) {
+
+		// Result theta range will be within -90 ~ 90, using signed char to store 
+		if (this->gradient.empty()) this->gradient = Mat(src1.rows, src1.cols, CV_8SC1);
+
+#ifndef USE_SIMPLE_LOOP
+		// src2 = G(y) & src1 = G(x)
+		std::transform(src1.begin<float>(), src1.end<float>(), src2.begin<float>(), this->gradient.begin<float>(),
+			[](const float& gx, const float& gy)
+			{
+				if (gx[j] == 0 && gy[j] != 0)
+					return 90;
+				else if (gx[j] == 0 && gy[j] == 0)
+					return 0;
+				else {
+					return (std::atan(gy[j] / gx[j]) * TO_THETA);
+				}
+				);
+
+#else
+
+		// Looping is faster than std::transform
+		for (int i = 0; i < src1.rows; i++) {
+			const src1_type*  gx = src1.ptr<src1_type>(i);
+			const src2_type*  gy = src2.ptr<src2_type>(i);
+			          schar* dst = this->gradient.ptr<schar>(i);
+
+			// Two if statement to improve speed, atan() is expensive
+			for (int j = 0; j < src1.cols; j++) {
+				if (gx[j] == 0 && gy[j] != 0)
+					dst[j] = 90;
+				else if (gx[j] == 0 && gy[j] == 0)
+					dst[j] = 0;
+				else {
+#ifdef DEBUG_SHOW_GRADIENT_RESULT
+					cout << std::atan(gy[j] / gx[j]) << " : y=" << gy[j] << ", x=" << gx[j] << endl;
+#endif
+					dst[j] = std::atan(gy[j] / gx[j]) * TO_THETA;
+				}
+			}
+		}
+
+		double mi, max;
+		minMaxLoc(this->gradient, &mi, &max);
+
+#endif // USE_SIMPLE_LOOPDEBUG
+
+
+#ifdef DEBUG_IMSHOW_RESULT
+		Mat gradient_show;
+		this->gradient.convertTo(gradient_show, CV_8UC1);
+		imshow("calculate_gradient() result in 8-bit (from float)", gradient_show);
+		waitKey(10);
+#endif 
+
+		return;
+	};
 	
 
 
