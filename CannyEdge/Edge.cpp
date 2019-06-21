@@ -167,7 +167,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 			float cur_mag_val = mag_ptr[j];
 			theta = (theta < 0) ? 180 + theta : theta;
 
-#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+#ifdef SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 			cout << "Theta = " << theta;
 #endif 
 
@@ -176,7 +176,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 					// vertical direction
 					if (cur_mag_val > mag_ptr[j - cols] && cur_mag_val > mag_ptr[j + cols])
 						dst_ptr[j] = cur_mag_val;
-#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+#ifdef SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 					cout << " -> [Vertical]" << endl;
 #endif
 				}
@@ -184,7 +184,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 					// horizontal direction
 					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val > mag_ptr[j + 1])
 						dst_ptr[j] = cur_mag_val;
-#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+#ifdef SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 					cout << " -> [Horizontal]" << endl;
 #endif
 				}
@@ -192,7 +192,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 					// bottom-left to top-right direction
 					if (cur_mag_val > mag_ptr[j + cols - 1] && cur_mag_val > mag_ptr[j - cols + 1])
 						dst_ptr[j] = cur_mag_val;
-#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+#ifdef SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 					cout << " -> [bl-tr]" << endl;
 #endif
 				}
@@ -200,14 +200,14 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 					// bottom-right to top-left direction
 					if (cur_mag_val > mag_ptr[j + cols + 1] && cur_mag_val > mag_ptr[j - cols - 1])
 						dst_ptr[j] = cur_mag_val;
-#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+#ifdef SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 					cout << " -> [br-tl]" << endl;
 #endif
 				}
 			} 
 			else {
 				dst_ptr[j] = 0;
-#ifdef NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+#ifdef SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 				cout << " -> [Mag == 0]" << endl;
 #endif
 			}
@@ -272,21 +272,67 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 			if (double_thresholded[j] == 0)        // No edge found
 			{
 				neighbor_result[j] = 0;
+#ifdef SHOW_HYSTERESIS_NEIGHBOR_RESULT
+				cout << "Not a edge pixel, no checking needed.\n";
+#endif 
 			}
 			else if (double_thresholded[j] == 125) // potential strong edge pixel
-			{ 
-				if      (double_thresholded[j - 1]        == 255) neighbor_result[j] = 255;
-				else if (double_thresholded[j + 1]        == 255) neighbor_result[j] = 255;
-				else if (double_thresholded[j - cols]     == 255) neighbor_result[j] = 255;
-				else if (double_thresholded[j + cols]     == 255) neighbor_result[j] = 255;
-				else if (double_thresholded[j - cols - 1] == 255) neighbor_result[j] = 255;
-				else if (double_thresholded[j - cols + 1] == 255) neighbor_result[j] = 255;
-				else if (double_thresholded[j + cols + 1] == 255) neighbor_result[j] = 255;
-				else if (double_thresholded[j + cols - 1] == 255) neighbor_result[j] = 255;
+			{
+				if (double_thresholded[j - 1] == 255) {
+					neighbor_result[j] = 255;
+#ifdef SHOW_HYSTERESIS_NEIGHBOR_RESULT
+					cout << "Neighbor 255 is at: j - 1\n";
+#endif 
+				}
+				else if (double_thresholded[j + 1] == 255) {
+					neighbor_result[j] = 255;
+#ifdef SHOW_HYSTERESIS_NEIGHBOR_RESULT
+					cout << "Neighbor 255 is at: j + 1\n";
+#endif 
+				}
+				else if (double_thresholded[j - cols] == 255) {
+					neighbor_result[j] = 255;
+#ifdef SHOW_HYSTERESIS_NEIGHBOR_RESULT
+					cout << "Neighbor 255 is at: j - cols\n";
+#endif 
+				}
+				else if (double_thresholded[j + cols] == 255) {
+					neighbor_result[j] = 255;
+#ifdef SHOW_HYSTERESIS_NEIGHBOR_RESULT
+					cout << "Neighbor 255 is at: j + cols\n";
+#endif 
+				}
+				else if (double_thresholded[j - cols - 1] == 255) {
+					neighbor_result[j] = 255;
+#ifdef SHOW_HYSTERESIS_NEIGHBOR_RESULT
+					cout << "Neighbor 255 is at: j - cols - 1\n";
+#endif 
+				}
+				else if (double_thresholded[j - cols + 1] == 255) {
+				neighbor_result[j] = 255;
+#ifdef SHOW_HYSTERESIS_NEIGHBOR_RESULT
+				cout << "Neighbor 255 is at: j + cols + 1\n";
+#endif 
+				}
+				else if (double_thresholded[j + cols + 1] == 255) {
+					neighbor_result[j] = 255;
+#ifdef SHOW_HYSTERESIS_NEIGHBOR_RESULT
+					cout << "Neighbor 255 is at: j + cols + 1\n";
+#endif 
+				}
+				else if (double_thresholded[j + cols - 1] == 255) {
+					neighbor_result[j] = 255;
+#ifdef SHOW_HYSTERESIS_NEIGHBOR_RESULT
+					cout << "Neighbor 255 is at: j + cols - 1\n";
+#endif 
+				}
 			}
 			else  // Is a strong edge pixel
 			{
 				neighbor_result[j] = 255;
+#ifdef SHOW_HYSTERESIS_NEIGHBOR_RESULT
+				cout << "Strong edge pixel, no checking needed.\n";
+#endif 
 			}
 		}
 	}

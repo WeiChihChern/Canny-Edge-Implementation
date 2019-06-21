@@ -18,14 +18,15 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 	#define USE_SIMPLE_LOOP 
 
 	//#define SHOW_GRADIENT_RESULT
-	//#define NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+	//#define SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
+	#define SHOW_HYSTERESIS_NEIGHBOR_RESULT
 #else
 	// Enable this will imshow conv2D, manitude, gradient, nonMax & thresholding 
     // result in 8-bit
 	#define DEBUG_IMSHOW_RESULT
 	#define USE_SIMPLE_LOOP 
 	// #define SHOW_GRADIENT_RESULT
-	// #define NonMaxSuppress_SHOW_THETA_and_DIRECTIONS
+	// #define SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 #endif
 
 
