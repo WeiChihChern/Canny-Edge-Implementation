@@ -51,7 +51,7 @@ Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 	waitKey(10);
 #endif 
 
-	this->calculate_Magnitude(gx, gy);
+	this->calculate_Magnitude<short, short>(gx, gy);
 	this->calculate_Gradients(gx, gy);
 
 	gx.release();
@@ -62,7 +62,6 @@ Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 	return this->hysteresis_threshold(suppressed, high_thres, low_thres);
 
 }
-
 
 
 

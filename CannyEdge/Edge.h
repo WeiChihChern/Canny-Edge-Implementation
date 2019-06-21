@@ -60,17 +60,10 @@ private:
 
 
 	// Square root of the sum of the squares -> ( G(x)^2 + G(y)^2 )^0.5
-	// Two inputs, src1 & src2 are two float-type sobel filtered result.
+	// Two inputs, src1 & src2 are two short-type sobel filtered result.
 	// Store the magnitude result in the class member variable 'magnitude' (float-type)
-	inline void calculate_Magnitude(const Mat &src1, const Mat &src2);
-	
-
-
-	// Using L2 norm gradient, which uses atan() for gradient calculation.
-	// The most expensive part of canny edge detection.
-	// Return a CV_32FC1 type gradient map
 	template <typename src1_type, typename src2_type>
-	inline void calculate_Magnitude(const Mat& src1, const Mat& src2) {
+	inline void calculate_Magnitude(const Mat& src1, const Mat& src2, bool To_8bits = false) {
 		if (this->magnitude.empty()) this->magnitude = Mat(src1.rows, src1.cols, CV_32FC1);
 
 #ifndef USE_SIMPLE_LOOP
@@ -100,7 +93,21 @@ private:
 		waitKey(10);
 #endif 
 
-	}
+		if (To_8bits)
+			this->magnitude.convertTo(this->magnitude, CV_8UC1);
+
+
+		return;
+	};
+
+
+
+	
+	// Using L2 norm gradient, which uses atan() for gradient calculation.
+	// The most expensive part of canny edge detection.
+	// Return a CV_32FC1 type gradient map
+	inline void calculate_Gradients(const Mat& src1, const Mat& src2);
+	
 
 
 
