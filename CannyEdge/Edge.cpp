@@ -96,7 +96,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 			if (cur_mag_val != 0) { // Edge pixel
 				if (theta >= 67 && theta <= 112) {
 					// vertical direction
-					if ( cur_mag_val >= max( max(cur_mag_val, mag_ptr[j - cols]), mag_ptr[j + cols]) ) {
+					if ( cur_mag_val > mag_ptr[j - cols] && cur_mag_val >= mag_ptr[j + cols] ) {
 						dst_ptr[j] = cur_mag_val;
 					} 
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
@@ -114,7 +114,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 				}
 				else if ((theta <= 22 && theta >= 0) || (theta <= 180 && theta >= 157)) {
 					// horizontal direction
-					if (cur_mag_val >= max( max(cur_mag_val, mag_ptr[j - 1]), mag_ptr[j + 1]) ) {
+					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val >= mag_ptr[j + 1]) {
 						dst_ptr[j] = cur_mag_val;
 					}
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
@@ -132,7 +132,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 				}
 				else if ((theta < 157 && theta > 112)) {
 					// bottom-left to top-right direction
-					if (cur_mag_val >= max( max(cur_mag_val, mag_ptr[j + cols - 1]), mag_ptr[j - cols + 1]) ) {
+					if (cur_mag_val >= mag_ptr[j + cols - 1] && cur_mag_val > mag_ptr[j - cols + 1]) {
 						dst_ptr[j] = cur_mag_val;
 					}
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
@@ -150,7 +150,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 				}
 				else {
 					// bottom-right to top-left direction
-					if (cur_mag_val >= max( max(cur_mag_val, mag_ptr[j + cols + 1]), mag_ptr[j - cols - 1]) ) {
+					if (cur_mag_val >= mag_ptr[j + cols + 1] && cur_mag_val > mag_ptr[j - cols - 1]) {
 						dst_ptr[j] = cur_mag_val;
 					}
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
