@@ -14,11 +14,12 @@ Edge::~Edge()
 
 
 Mat Edge::CannyEdge(Mat& src, float high_thres, float low_thres) {
+
 	Mat copy1, copy2;
 	this->conv2<uchar, short>(src, copy1, sobel_horizontal);
 	this->conv2<uchar, short>(src, copy2, sobel_vertical);
 
-	this->calculate_Magnitude<short,short>(copy1, copy2);
+	this->calculate_Magnitude<short,short>(copy1, copy2, true);
 	this->calculate_Gradients<short, short>(copy1, copy2);
 	
 	copy1.release();
@@ -31,7 +32,6 @@ Mat Edge::CannyEdge(Mat& src, float high_thres, float low_thres) {
 
 
 Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
-
 
 	Mat gx(src.rows, src.cols, CV_16SC1); // Short type
 	this->conv2_h_sobel<uchar, short>(       src, gx, this->sobel_one);
@@ -51,6 +51,8 @@ Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 	waitKey(10);
 #endif 
 
+	
+
 	// Save magnitude result in unsigned char (uchar) 
 	this->calculate_Magnitude<short, short>(gx, gy, true);
 	// Save gradient result in signed char (schar)
@@ -68,9 +70,8 @@ Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 
 
 
-// In canny edge case:
-//	Magnitude is in unsigned char type
-//	Gradient is in signed char type
+
+
 void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 	// Both magnitude & gradient are in float type
 	if(this->suppressed.empty()) this->suppressed = Mat (magnitude.rows, magnitude.cols, CV_8UC1, Scalar(0));
@@ -181,10 +182,10 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 	waitKey(10);
 #endif 
 
-	//remove me
-	Mat temp = this->suppressed.clone();
 	return;
 }
+
+
 
 
 Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
@@ -231,11 +232,6 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 		uchar* double_thresholded = src.ptr<uchar>(i);
 			
 		for (int j = 1; j < cols-1; j++) {
-			////remove me
-			//if (i == 123 && j == 380) {
-			//	cout << "here!!! in 10 seconds";
-			//	waitKey(10000);
-			//}
 			if (double_thresholded[j] == 0)        // No edge found
 			{
 				neighbor_result[j] = 0;

@@ -13,33 +13,49 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 
 
 #if 1
-	// for-loop is faster (tested on VS Studio 2019 with OpenCV 4.0.1)
-	// Disable this will use std::transform + lambda for looping instead
+	/* 
+		for-loop is faster (tested on VS Studio 2019 with OpenCV 4.0.1)
+		Disable this will use std::transform + lambda for looping instead
+	*/
 	#define USE_SIMPLE_LOOP 
 
+
 	//#define DEBUG_SHOW_GRADIENT_RESULT
-	// #define DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
+
+	//#define DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
+
 	//#define DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
+
 #else
-	// Enable this will imshow conv2D, manitude, gradient, nonMax & thresholding 
-    // result in 8-bit
+	/* 
+		Enable this will imshow conv2D, manitude, gradient, nonMax & thresholding 
+		result in 8-bit
+	*/
 	#define DEBUG_IMSHOW_RESULT
+
 	#define USE_SIMPLE_LOOP 
+
 	// #define DEBUG_SHOW_GRADIENT_RESULT
+
 	// #define DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
+
 	// #define DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 #endif
 
 
-class Edge : public Utils
+
+class Edge : public Utils // Utils includes 2-D & 1-D convolution functions
 {
 public:
+	// Two sobel 2-D kernels
 	vector<vector<float>> sobel_horizontal = { {-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1} };
 	vector<vector<float>>   sobel_vertical = { {-1, -2, -1}, {0, 0, 0}, {1, 2, 1} };
 
+	// Separate 2-D kernel to two 1-D kernels for speed boost
 	vector<float>                sobel_one = { 1, 0, -1 };
 	vector<float>                sobel_two = { 1, 2, 1 };
 
+	
 	Mat magnitude, 
 		gradient, 
 		suppressed;
@@ -54,14 +70,20 @@ public:
 	// CannEdge2() separate the sobel kernel to two 3-element kernel for convolution,
 	// so its faster than CannyEdge().  And the convolution process is further optimized
 	// to avoid an extra for-loop
+	// Input param:
+	//		Input 'src' should be a 8-bit (uchar) grayscale image
+	// Output param:
+	//		Function will output a 8-bit uchar grayscale image with edges
 	Mat cannyEdge2(Mat& src, float high_thres = 200, float low_thres = 100);
 
 private: 
 
 
-	// Square root of the sum of the squares -> ( G(x)^2 + G(y)^2 )^0.5
-	// Two inputs, src1 & src2 are two short-type sobel filtered result.
-	// Output calculation into float-type Mat
+	// This function uses square root of the sum of the squares: ( G(x)^2 + G(y)^2 )^0.5
+	// Input params: 
+	//		User can manually select what type your inputs are ('src1' & 'src2')
+	// Output:
+	//		Will save a uchar result to member variable 'magnitude'
 	template <typename src1_type, typename src2_type>
 	inline void calculate_Magnitude(const Mat& src1, const Mat& src2, bool To_8bits = false) {
 
@@ -110,9 +132,12 @@ private:
 
 
 	
-	// Using L2 norm gradient, which uses atan() for gradient calculation.
-	// The most expensive part of canny edge detection.
-	// Return a CV_32FC1 type gradient map
+	// This function uses std::atan() to calculate gradient and multiply a constexpr 'TO_THETA'
+	// to convert it to degree.
+	// Input params: 
+	//		User can manually select what type your inputs are ('src1' & 'src2')
+	// Output:
+	//		Will save a uchar result to member variable 'gradient'
 	template <typename src1_type, typename src2_type>
 	inline void calculate_Gradients(const Mat& src1, const Mat& src2) {
 
@@ -126,10 +151,14 @@ private:
 			{
 				if (gx[j] == 0 && gy[j] != 0)
 					return (schar)90;
-				else if (gx[j] == 0 && gy[j] == 0)
+				else if (gy[j] == 0)
 					return (schar)0;
+				else if (gy[j] / gx[j] == 1)
+					return (schar)45;
+				else if (gy[j] / gx[j] == -1)
+					return (schar)-45;
 				else {
-					return (schar)(std::atan(gy[j] / gx[j]) * TO_THETA);
+					return (schar)(std::atan((float)gy[j] / (float)gx[j]) * TO_THETA);
 				}
 				);
 
@@ -160,9 +189,6 @@ private:
 			}
 		}
 
-		////remove me
-		//double mi, max;
-		//minMaxLoc(this->gradient, &mi, &max);
 
 #endif // USE_SIMPLE_LOOPDEBUG
 
@@ -180,14 +206,18 @@ private:
 
 
 
-	// Input: 
-	//	Magnitdue & Gradient are both in CV_32FC1 type
-	// Return a suppressed result in CV_32FC1
+	// Input params: 
+	//		Magnitdue should be in 8-bit uchar type
+	//		gradient should be in 8-bit schar type, storing -90 ~ 90 degrees
+	// Output:
+	//		Will save a uchar result to member variable 'suppressed'
 	void nonMaxSuppresion(Mat& magnitude, const Mat& gradient);
 
 
-	// src is the result of non maximum suppression (CV_)
-	// Mat will be converted to CV_8UC1
+	// Input params: 
+	//		'src' should be in 8-bit uchar type
+	// Output:
+	//		will do thresholding inplace in member variable 'suppressed'
 	Mat hysteresis_threshold(Mat& src, float high_thres = 200, float low_thres = 100);
 	
 };

@@ -16,14 +16,15 @@ int main() {
 
 
 	Mat img = imread("Capture.PNG", 0);
-	//resize(img, img, Size(1920,1080));
 
 	GaussianBlur(img, img, Size(3, 3), 0.5);
+
 
 	Edge tool;
 	Mat my_result = tool.cannyEdge2(img);
 	imshow("separate", my_result);
 	waitKey(10);
+
 
 	Mat cannyresult;
 	cv::Canny(img, cannyresult, 200, 100, 3,true);
