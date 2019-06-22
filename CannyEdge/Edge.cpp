@@ -205,7 +205,7 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 #else
 
 	for (int i = 0; i < src.rows; i++) {
-		float* src_ptr = src.ptr<float>(i);
+		uchar* src_ptr = src.ptr<uchar>(i);
 		for (int j = 0; j < src.cols; j++) {
 			if (src_ptr[j] >= high_thres)
 				src_ptr[j] = 255;
@@ -228,9 +228,14 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	int cols = src.cols;
 	for (int i = 1; i < src.rows-1; i++) {
 		uchar* neighbor_result    = dst.ptr<uchar>(i);
-		float* double_thresholded = src.ptr<float>(i);
+		uchar* double_thresholded = src.ptr<uchar>(i);
 			
 		for (int j = 1; j < cols-1; j++) {
+			////remove me
+			//if (i == 123 && j == 380) {
+			//	cout << "here!!! in 10 seconds";
+			//	waitKey(10000);
+			//}
 			if (double_thresholded[j] == 0)        // No edge found
 			{
 				neighbor_result[j] = 0;
@@ -288,6 +293,10 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 					cout << "Neighbor 255 is at: j + cols - 1\n";
 #endif 
 				}
+				else { // No strong pixel (=255) in 8 neighbors
+					neighbor_result[j] = 0;
+				}
+
 			}
 			else  // Is a strong edge pixel
 			{
