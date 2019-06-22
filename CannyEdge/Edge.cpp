@@ -139,12 +139,13 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 					else {
 						suppressed_to_zero = true;
 					}
-					cout << " -> [Check bl-tr : (;
 					if (d == 1) {
+						cout << " -> [Check bl-tr : (";
 						cout << "j+cols-1 = " << (int)mag_ptr[j + cols - 1] << " , ";
 						cout << "j-cols+1 = " << (int)mag_ptr[j - cols + 1] << ") ";
 					}
 					else {
+						cout << " -> [Check br-tl : (";
 						cout << "j+cols+1 = " << (int)mag_ptr[j + cols + 1] << " , ";
 						cout << "j-cols-1 = " << (int)mag_ptr[j - cols - 1] << ") ";
 					}
