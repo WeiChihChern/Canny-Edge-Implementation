@@ -25,7 +25,7 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
     // result in 8-bit
 	#define DEBUG_IMSHOW_RESULT
 	#define USE_SIMPLE_LOOP 
-	// #define DEBUG_SHOW_GRADIENT_RESULT
+	#define DEBUG_SHOW_GRADIENT_RESULT
 	//#define DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 	// #define DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 #endif
@@ -148,10 +148,10 @@ private:
 				else if (gx[j] == 0 && gy[j] == 0)
 					dst[j] = (schar)0;
 				else {
+					dst[j] = (schar)(std::atan(gy[j] / gx[j]) * TO_THETA);
 #ifdef DEBUG_SHOW_GRADIENT_RESULT
-					cout sd<< std::atan(gy[j] / gx[j]) << " : y=" << gy[j] << ", x=" << gx[j] << endl;
+					cout << (int)dst[j] << " : y=" << gy[j] << ", x=" << gx[j] << endl;
 #endif
-					dst[j] = (schar)std::atan(gy[j] / gx[j]) * TO_THETA;
 				}
 			}
 		}
