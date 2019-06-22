@@ -145,7 +145,7 @@ private:
 			for (int j = 0; j < src1.cols; j++) {
 				if (gx[j] == 0 && gy[j] != 0)
 					dst[j] = (schar)90;
-				else if (gx[j] == 0 && gy[j] == 0)
+				else if (gy[j] == 0)
 					dst[j] = (schar)0;
 				else if (gy[j] / gx[j] == 1)
 					dst[j] = (schar)45;
