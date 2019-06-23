@@ -15,4 +15,4 @@ Performance (CPU: 8700k at 4.4GHz):
 | 3840 x 2160   | 304.65ms      |    No |
 
 Next step:
-Use vector or array for storing different caluclate values like magnitudes, gradient and even convolution result.
+Use vector or array for storing different caluclate values like magnitudes, gradient and even convolution result. For a 1-D array, looping through it could be faster than two for-loops.
