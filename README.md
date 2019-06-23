@@ -13,3 +13,6 @@ Performance (CPU: 8700k at 4.4GHz):
 | 637 x 371     |  11.39 ms     |   No |
 | 3840 x 2160   |  106.775 ms     |   Yes |
 | 3840 x 2160   | 304.65ms      |    No |
+
+Next step:
+Use vector or array for storing different caluclate values like magnitudes, gradient and even convolution result.
