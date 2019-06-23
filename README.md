@@ -5,7 +5,7 @@ In Edge.h, there are two class member functions to do canny edge detection: *can
 
 *cannyEdge2()* is an optimized version of cannyEdge() in 2D convolution process, it separates the sobel kernel into two smaller kernels for faster convolution process and reduces one for-loop.
 
-Performance:
+Performance (CPU: 8700k at 4.4GHz): 
 
 | Input size    |  Time (ms)    | OpenMP Enable?  |
 | ------------- |:-------------:| -----:|
