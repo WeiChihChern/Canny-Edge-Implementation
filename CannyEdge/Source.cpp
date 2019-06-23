@@ -18,15 +18,15 @@ int main() {
 	Mat small = imread("Capture.PNG", 0);
 
 	Mat big;
-	resize(small, big, Size(6000, 3010)); // For benchmark only
+	resize(small, big, Size(3840, 2160)); // For benchmark only
 
 	GaussianBlur(small, small, Size(3, 3), 0.5);
 
 	Timer timer;
 	Edge tool;
-	int iterations = 1000;
+	int iterations = 200;
 	Mat result, 
-		input = small;
+		input = big;
 	
 
 
