@@ -127,7 +127,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 						cout << "[Not suppressed]\n";		
 #endif
 				}
-				else if ((theta <= 22 && theta >= 0) || (theta <= 180 && theta >= 157)) {
+				else if ((theta < 23 && theta >= 0) || (theta <= 180 && theta > 157)) {
 					// horizontal direction
 					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val >= mag_ptr[j + 1]) {
 						dst_ptr[j] = cur_mag_val;
