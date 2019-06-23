@@ -102,6 +102,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 		for (int j = 1; j < cols-1; j++) {
 			short       theta = (gra_ptr[j] < 0) ? 180+ gra_ptr[j] : gra_ptr[j];
 			uchar cur_mag_val = mag_ptr[j];
+			//theta = (theta < 0) ? 180 + theta : theta;
 
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 			bool suppressed_to_zero = false;
