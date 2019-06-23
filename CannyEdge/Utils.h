@@ -12,7 +12,7 @@ using namespace cv;
 	#ifdef __GNUC__
 		#define OMP_FOR(n)  _Pragma("omp parallel for if (n>300000)")
 	#elif _MSC_VER
-		#define OMP_FOR(n)  __pragma(omp parallel for if (n>100000000)) 
+		#define OMP_FOR(n)  __pragma(omp parallel for if (n>100)) 
 	#endif	
 #else
 	#define omp_get_thread_num() 0
@@ -181,14 +181,15 @@ public:
 		
 		OMP_FOR( (src_rows - offset_row) * src_cols ) // Automatically ignored if no openmp support
 		for (int i = offset_row; i < (src.rows - offset_row); i++) { // Start looping
-			for (int j = 0; j < src_cols; j++) {
-				const src_type* src_ptr = src.ptr<src_type>(i) + j;
-					  dst_type* dst_ptr = dst.ptr<dst_type>(i) + j;
-				
+			const src_type* src_ptr = src.ptr<src_type>(i);
+				  dst_type* dst_ptr = dst.ptr<dst_type>(i);
 
-				float sum  = src_ptr[-src_cols]       * kernel[0];
-					  sum += src_ptr[0]               * kernel[1];
-				  *dst_ptr = sum + (src_ptr[src_cols] * kernel[2]);
+			for (int j = 0; j < src_cols; j++) {
+
+				dst_ptr[j]  = 0; // It could be non-zero value, so make it zero before adding
+				dst_ptr[j] += src_ptr[j - src_cols] * kernel[0];
+				dst_ptr[j] += src_ptr[j]            * kernel[1];
+				dst_ptr[j] += src_ptr[j + src_cols] * kernel[2];
 			}
 		}
 	};
@@ -284,9 +285,10 @@ public:
 
 			for (int j = offset_col; j < (src_cols - offset_col); j++) {
 				
-				float sum  = src_ptr[j - 1]  * kernel[0];
-				      sum += src_ptr[j]      * kernel[1];
-				dst_ptr[j] = sum + (src_ptr[j + 1]  * kernel[2]);
+				dst_ptr[j]  = 0; // It could be non-zero value, so make it zero before adding
+				dst_ptr[j] += src_ptr[j - 1]  * kernel[0];
+				dst_ptr[j] += src_ptr[j]      * kernel[1];
+				dst_ptr[j] += src_ptr[j + 1]  * kernel[2];
 			}
 		}
 

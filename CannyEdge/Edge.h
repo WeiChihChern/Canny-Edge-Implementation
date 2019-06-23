@@ -25,7 +25,7 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 		#ifdef __GNUC__
 			#define OMP_FOR(n)  _Pragma("omp parallel for if (n>300000)")
 		#elif _MSC_VER
-			#define OMP_FOR(n)  __pragma(omp parallel for if (n>100000000)) 
+			#define OMP_FOR(n)  __pragma(omp parallel for if (n>100)) // Ability to toggle openmp according to size
 		#endif	
 	#else
 		#define omp_get_thread_num() 0
