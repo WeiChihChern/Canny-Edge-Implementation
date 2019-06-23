@@ -10,16 +10,17 @@ using namespace std;
 using namespace cv;
 
 
+
 int main() {
 
 
-
+	if (cv::useOptimized()) cout << "use\n";
 
 
 	Mat small = imread("Capture.PNG", 0);
 
 	Mat big;
-	resize(small, big, Size(50000, 5000)); // Benchmark purpose
+	resize(small, big, Size(1920, 1080)); // Benchmark purpose
 
 	GaussianBlur(small, small, Size(3, 3), 0.5);
 	GaussianBlur(big, big, Size(3, 3), 0.5);

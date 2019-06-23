@@ -161,11 +161,11 @@ public:
 
 		// Params check
 		if (src.empty() || src.channels() == 3) {
-			cout << "conv2_v() input error.\n";
+			cout << "conv2_v_sobel() input error.\n";
 			return;
 		}
 		if (kernel.size() % 2 == 0) {
-			cout << "conv2_v() kernel size error. \n";
+			cout << "conv2_v_sobel() kernel size error. \n";
 			return;
 		}
 
@@ -207,7 +207,7 @@ public:
 			return;
 		}
 		if (kernel.size() % 2 == 0) {
-			cout << "conv2_v() kernel size error. \n";
+			cout << "conv2_h() kernel size error. \n";
 			return;
 		}
 
@@ -261,11 +261,11 @@ public:
 
 		// Params check
 		if (src.empty() || src.channels() == 3) {
-			cout << "conv2_h() input error.\n";
+			cout << "conv2_h_sobel() input error.\n";
 			return;
 		}
 		if (kernel.size() % 2 == 0) {
-			cout << "conv2_v() kernel size error. \n";
+			cout << "conv2_h_sobel() kernel size error. \n";
 			return;
 		}
 
