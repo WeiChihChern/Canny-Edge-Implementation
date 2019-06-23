@@ -14,48 +14,45 @@ using namespace cv;
 int main() {
 
 
-	if (cv::useOptimized()) cout << "use\n";
-
 
 	Mat small = imread("Capture.PNG", 0);
 
 	Mat big;
-	resize(small, big, Size(1920, 1080)); // Benchmark purpose
+	resize(small, big, Size(6000, 3010)); // For benchmark only
 
 	GaussianBlur(small, small, Size(3, 3), 0.5);
-	GaussianBlur(big, big, Size(3, 3), 0.5);
 
 	Timer timer;
 	Edge tool;
-
-	timer.start();
-	Mat my_result = tool.cannyEdge2(small);
-	timer.stop();
-
-	cout << "My canny edge on small image: " << timer.elapsedMilliseconds() << endl;
-
-
-	Mat cannyresult;
-	timer.start();
-	cv::Canny(small, cannyresult, 200, 100, 3,true);
-	timer.stop();
-
-	cout << "OpenCV canny edge on small image: " << timer.elapsedMilliseconds() << endl;
-
-
-	tool.release();
-	timer.start();
-	my_result = tool.cannyEdge2(big);
-	timer.stop();
-
-	cout << "My canny edge on big image: " << timer.elapsedMilliseconds() << endl;
+	int iterations = 1000;
+	Mat result, 
+		input = small;
+	
 
 
 	timer.start();
-	cv::Canny(big, cannyresult, 200, 100, 3, true);
+	for (int i = 0; i < iterations; i++) {
+		tool.cannyEdge2(input, result, 200, 100);
+	}
+	timer.stop();
+	cout << "My canny edge on small image: " << timer.elapsedMilliseconds() / (double)iterations << "ms\n";
+
+	imshow("My canny edge", result);
+	waitKey(10);
+
+
+
+	timer.start();
+	for (int i = 0; i < iterations; i++) {
+		cv::Canny(input, result, 200, 100);
+	}
 	timer.stop();
 
-	cout << "OpenCV canny edge on big image: " << timer.elapsedMilliseconds() << endl;
+	cout << "Opencv canny edge on small image: " << timer.elapsedMilliseconds() / (double)iterations << "ms\n";
+
+
+	imshow("Opencv canny edge", result);
+	waitKey(10);
 
 
 	return 0;

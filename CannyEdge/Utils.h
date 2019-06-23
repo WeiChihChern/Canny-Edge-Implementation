@@ -12,7 +12,7 @@ using namespace cv;
 	#ifdef __GNUC__
 		#define OMP_FOR(n)  _Pragma("omp parallel for if (n>300000)")
 	#elif _MSC_VER
-		#define OMP_FOR(n)  __pragma(omp parallel for if (n>300000)) 
+		#define OMP_FOR(n)  __pragma(omp parallel for if (n>100000000)) 
 	#endif	
 #else
 	#define omp_get_thread_num() 0
@@ -155,7 +155,7 @@ public:
 
 
 	template<typename src_type, typename dst_type, typename kernel_type>
-	void conv2_v_sobel(const Mat_<src_type>& src, Mat_<dst_type>& dst, const vector<kernel_type>& kernel) {
+	void conv2_v_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
 
 		// Params check
 		if (src.empty() || src.channels() == 3) {
@@ -181,19 +181,14 @@ public:
 		
 		OMP_FOR( (src_rows - offset_row) * src_cols ) // Automatically ignored if no openmp support
 		for (int i = offset_row; i < (src.rows - offset_row); i++) { // Start looping
-			const src_type* src_row = src[i];
-				  dst_type* dst_row = dst[i];
 			for (int j = 0; j < src_cols; j++) {
-				/*const src_type* src_ptr = src.ptr<src_type>(i) + j;
+				const src_type* src_ptr = src.ptr<src_type>(i) + j;
 					  dst_type* dst_ptr = dst.ptr<dst_type>(i) + j;
 				
 
 				float sum  = src_ptr[-src_cols]       * kernel[0];
 					  sum += src_ptr[0]               * kernel[1];
-				  *dst_ptr = sum + (src_ptr[src_cols] * kernel[2]);*/
-				float sum  = src_row[-src_cols]       * kernel[0];
-					  sum += src_row[0]               * kernel[1];
-		        dst_row[j] = sum + (src_row[src_cols] * kernel[2]);
+				  *dst_ptr = sum + (src_ptr[src_cols] * kernel[2]);
 			}
 		}
 	};
@@ -252,6 +247,7 @@ public:
 				dst_ptr[j] = sum;
 			}
 		}
+
 	
 	};
 

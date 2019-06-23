@@ -13,7 +13,7 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 
 
 
-#if 0 // Relase
+#if 1 // Relase
 	/*  for-loop is faster (tested on VS Studio 2019 with OpenCV 4.0.1)
 		Disable this will use std::transform + lambda for looping in stead  */
 	#define USE_SIMPLE_LOOP 
@@ -25,7 +25,7 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 		#ifdef __GNUC__
 			#define OMP_FOR(n)  _Pragma("omp parallel for if (n>300000)")
 		#elif _MSC_VER
-			#define OMP_FOR(n)  __pragma(omp parallel for if (n>300000)) 
+			#define OMP_FOR(n)  __pragma(omp parallel for if (n>100000000)) 
 		#endif	
 	#else
 		#define omp_get_thread_num() 0
@@ -73,7 +73,7 @@ public:
 	~Edge();
 	
 	// CannyEdge() use a 3x3 kernel for covlution which is slower than CannyEdge2()
-	Mat CannyEdge(Mat &src, float high_thres = 200, float low_thres = 100);
+	void CannyEdge(Mat &src, Mat &dst, float high_thres = 200, float low_thres = 100);
 
 	// CannEdge2() separate the sobel kernel to two 3-element kernel for convolution,
 	// so its faster than CannyEdge().  And the convolution process is further optimized
@@ -82,7 +82,7 @@ public:
 	//		Input 'src' should be a 8-bit (uchar) grayscale image
 	// Output param:
 	//		Function will output a 8-bit uchar grayscale image with edges
-	Mat cannyEdge2(Mat& src, float high_thres = 200, float low_thres = 100);
+	void cannyEdge2(Mat& src, Mat &dst, float high_thres = 200, float low_thres = 100);
 
 	void release() {
 		magnitude.release();
@@ -101,7 +101,7 @@ private:
 	template <typename src1_type, typename src2_type>
 	inline void calculate_Magnitude(const Mat& src1, const Mat& src2, bool To_8bits = false) {
 
-		if (this->magnitude.empty()) this->magnitude = Mat(src1.rows, src1.cols, CV_32FC1);
+		if (this->magnitude.empty() || this->magnitude.type() != CV_32FC1) this->magnitude = Mat(src1.rows, src1.cols, CV_32FC1);
 
 #ifndef USE_SIMPLE_LOOP
 		std::transform(src1.begin<src1_type>(), src1.end<src1_type>(), src2.begin<src2_type>(), this->magnitude.begin<float>(),

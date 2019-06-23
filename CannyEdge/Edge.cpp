@@ -13,7 +13,7 @@ Edge::~Edge()
 }
 
 
-Mat Edge::CannyEdge(Mat& src, float high_thres, float low_thres) {
+void Edge::CannyEdge(Mat& src, Mat &dst, float high_thres, float low_thres) {
 
 	Mat copy1, copy2;
 	this->conv2<uchar, short>(src, copy1, sobel_horizontal);
@@ -27,11 +27,20 @@ Mat Edge::CannyEdge(Mat& src, float high_thres, float low_thres) {
 
 	this->nonMaxSuppresion(magnitude, gradient);
 
-	return this->hysteresis_threshold(this->suppressed, high_thres, low_thres);
+	magnitude.release();
+	gradient.release();
+
+	dst = this->hysteresis_threshold(suppressed, high_thres, low_thres);
+
+	magnitude.release();
+	gradient.release();
+	suppressed.release();
+
+	return;
 }
 
 
-Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
+void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 
 	Mat gx(src.rows, src.cols, CV_16SC1); // Short type
 	this->conv2_h_sobel<uchar, short>(       src, gx, this->sobel_one);
@@ -63,7 +72,13 @@ Mat Edge::cannyEdge2(Mat& src, float high_thres, float low_thres) {
 
 	this->nonMaxSuppresion(this->magnitude, this->gradient);
 
-	return this->hysteresis_threshold(suppressed, high_thres, low_thres);
+	dst = this->hysteresis_threshold(suppressed, high_thres, low_thres);
+
+	magnitude.release();
+	gradient.release();
+	suppressed.release();
+
+	return;
 
 }
 
@@ -308,6 +323,8 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	imshow("Edge class's hysteresis_threshold() result in 8-bit (from float)", dst);
 	waitKey(10);
 #endif 
+
+
 
 	return dst;
 }
