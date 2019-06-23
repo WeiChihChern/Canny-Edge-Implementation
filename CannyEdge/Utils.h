@@ -5,8 +5,6 @@
 using namespace std;
 using namespace cv;
 
-#define USE_SIMPLE_LOOP 
-
 
 #ifdef _OPENMP
 	#include <omp.h>
@@ -157,11 +155,11 @@ public:
 
 
 	template<typename src_type, typename dst_type, typename kernel_type>
-	void conv2_v_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
+	void conv2_v_sobel(const Mat_<src_type>& src, Mat_<dst_type>& dst, const vector<kernel_type>& kernel) {
 
 		// Params check
 		if (src.empty() || src.channels() == 3) {
-			cout << "conv2_v_sobel() input error.\n";
+			cout << "conv2_vsobel() input error.\n";
 			return;
 		}
 		if (kernel.size() % 2 == 0) {
@@ -183,16 +181,19 @@ public:
 		
 		OMP_FOR( (src_rows - offset_row) * src_cols ) // Automatically ignored if no openmp support
 		for (int i = offset_row; i < (src.rows - offset_row); i++) { // Start looping
-
-
+			const src_type* src_row = src[i];
+				  dst_type* dst_row = dst[i];
 			for (int j = 0; j < src_cols; j++) {
-				const src_type* src_ptr = src.ptr<src_type>(i) + j;
+				/*const src_type* src_ptr = src.ptr<src_type>(i) + j;
 					  dst_type* dst_ptr = dst.ptr<dst_type>(i) + j;
 				
 
 				float sum  = src_ptr[-src_cols]       * kernel[0];
 					  sum += src_ptr[0]               * kernel[1];
-				  *dst_ptr = sum + (src_ptr[src_cols] * kernel[2]);
+				  *dst_ptr = sum + (src_ptr[src_cols] * kernel[2]);*/
+				float sum  = src_row[-src_cols]       * kernel[0];
+					  sum += src_row[0]               * kernel[1];
+		        dst_row[j] = sum + (src_row[src_cols] * kernel[2]);
 			}
 		}
 	};

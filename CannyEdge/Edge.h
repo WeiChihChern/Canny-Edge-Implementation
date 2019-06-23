@@ -13,7 +13,7 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 
 
 
-#if 1 // Relase
+#if 0 // Relase
 	/*  for-loop is faster (tested on VS Studio 2019 with OpenCV 4.0.1)
 		Disable this will use std::transform + lambda for looping in stead  */
 	#define USE_SIMPLE_LOOP 
@@ -41,7 +41,7 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 
 	/*  Enable this will imshow conv2D, manitude, gradient, nonMax & thresholding
 		result in 8-bit  */
-	// #define DEBUG_IMSHOW_RESULT
+	 #define DEBUG_IMSHOW_RESULT
 
 	// #define DEBUG_SHOW_GRADIENT_RESULT
 
