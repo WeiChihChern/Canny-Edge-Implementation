@@ -78,6 +78,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 	int rows = magnitude.rows,
 		cols = magnitude.cols;
 
+	OMP_FOR(rows * cols) // Automatically ignored if no openmp support
 	for (int i = 1; i < rows-1; i++) {
 			  uchar* dst_ptr = this->suppressed.ptr<uchar>(i);
 		      uchar* mag_ptr = magnitude.ptr<uchar>(i);
@@ -182,6 +183,9 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 
 	if (src.empty() || src.channels() == 3) { cout << "hysteresis_threshold() error!\n"; return Mat(0,0,CV_8UC1); }
 
+	int rows = src.rows,
+		cols = src.cols;
+
 #ifndef USE_SIMPLE_LOOP
 	std::transform(src.begin<float>(), src.end<float>(), src.begin<float>(), 
 		[&high_thres, &low_thres] (const float &src_val) {
@@ -194,7 +198,9 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 		});
 
 #else
+	
 
+	OMP_FOR(rows * cols) // Automatically ignored if no openmp support
 	for (int i = 0; i < src.rows; i++) {
 		uchar* src_ptr = src.ptr<uchar>(i);
 		for (int j = 0; j < src.cols; j++) {
@@ -206,6 +212,7 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 				src_ptr[j] = 0;
 		}
 	}
+
 #endif // !USE_SIMPLE_LOOP
 
 
@@ -216,8 +223,9 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	// that pixel can be assigned as a strong pixel with
 	// 255 intensity value. Otherwise, suppress it to 0
 	Mat dst(src.rows, src.cols, CV_8UC1);
-	int cols = src.cols;
-	for (int i = 1; i < src.rows-1; i++) {
+	
+	OMP_FOR(rows * cols) // Automatically ignored if no openmp support
+	for (int i = 1; i < rows-1; i++) {
 		uchar* neighbor_result    = dst.ptr<uchar>(i);
 		uchar* double_thresholded = src.ptr<uchar>(i);
 			

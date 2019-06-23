@@ -5,6 +5,24 @@
 using namespace std;
 using namespace cv;
 
+#define USE_SIMPLE_LOOP 
+
+
+#ifdef _OPENMP
+	#include <omp.h>
+
+	#ifdef __GNUC__
+		#define OMP_FOR(n)  _Pragma("omp parallel for if (n>300000)")
+	#elif _MSC_VER
+		#define OMP_FOR(n)  __pragma(omp parallel for if (n>300000)) 
+	#endif	
+#else
+	#define omp_get_thread_num() 0
+	#define OMP_FOR(n)
+#endif // _OPENMP
+
+
+
 
 // This class is for some general utilities' functions:
 // All the convolution processes here is designed for grayscale image only for now
@@ -49,8 +67,8 @@ public:
 		int offset_row = k_rows / 2,
 			offset_col = k_cols / 2;
 
-		// Start looping process
-		for (int i = offset_row; i < src_rows - offset_row; i++) {
+		OMP_FOR( (src_rows - offset_row) * (src_cols - offset_col) ) // Automatically ignored if no openmp support
+		for (int i = offset_row; i < src_rows - offset_row; i++) { // Start looping process
 			dst_type* dst_ptr = dst.ptr<dst_type>(i);
 
 			for (int j = offset_col; j < src_cols - offset_col; j++) {
@@ -107,8 +125,8 @@ public:
 		int k_idx = -offset_row;
 
 
-		// Start looping
-		for (int i = offset_row; i < (src.rows - offset_row); i++) {
+		OMP_FOR((src_rows - offset_row) * (src_cols - offset_col)) // Automatically ignored if no openmp support
+		for (int i = offset_row; i < (src.rows - offset_row); i++) { // Start looping
 
 
 			for (int j = 0; j < src_cols; j++) {
@@ -162,9 +180,9 @@ public:
 		int offset_row = k_size / 2;
 		int k_idx = -offset_row;
 
-
-		// Start looping
-		for (int i = offset_row; i < (src.rows - offset_row); i++) {
+		
+		OMP_FOR( (src_rows - offset_row) * src_cols ) // Automatically ignored if no openmp support
+		for (int i = offset_row; i < (src.rows - offset_row); i++) { // Start looping
 
 
 			for (int j = 0; j < src_cols; j++) {
@@ -172,11 +190,9 @@ public:
 					  dst_type* dst_ptr = dst.ptr<dst_type>(i) + j;
 				
 
-				float sum = src_ptr[-src_cols] * kernel[0];
-				sum += src_ptr[0]         * kernel[1];
-				sum += src_ptr[src_cols]  * kernel[2];
-
-				*dst_ptr = sum;
+				float sum  = src_ptr[-src_cols]       * kernel[0];
+					  sum += src_ptr[0]               * kernel[1];
+				  *dst_ptr = sum + (src_ptr[src_cols] * kernel[2]);
 			}
 		}
 	};
@@ -206,6 +222,7 @@ public:
 		int offset_col = k_size / 2;
 		int k_idx = -offset_col;
 
+		OMP_FOR( src_rows * (src_cols - offset_col) ) // Automatically ignored if no openmp support
 		for (int i = 0; i < src_rows; i++) {
 			const src_type* src_ptr = src.ptr<src_type>(i);
 			      dst_type* dst_ptr = dst.ptr<dst_type>(i);
@@ -263,17 +280,16 @@ public:
 		int offset_col = k_size / 2;
 		int k_idx = -offset_col;
 
+		OMP_FOR( src_rows * (src_cols - offset_col) ) // Automatically ignored if no openmp support
 		for (int i = 0; i < src_rows; i++) {
 			const src_type* src_ptr = src.ptr<src_type>(i);
 				  dst_type* dst_ptr = dst.ptr<dst_type>(i);
 
 			for (int j = offset_col; j < (src_cols - offset_col); j++) {
 				
-				float sum = src_ptr[j - 1]  * kernel[0];
-				sum      += src_ptr[j]      * kernel[1];
-				sum      += src_ptr[j + 1]  * kernel[2];
-
-				dst_ptr[j] = sum;
+				float sum  = src_ptr[j - 1]  * kernel[0];
+				      sum += src_ptr[j]      * kernel[1];
+				dst_ptr[j] = sum + (src_ptr[j + 1]  * kernel[2]);
 			}
 		}
 

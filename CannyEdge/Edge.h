@@ -12,28 +12,36 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 //constexpr auto OFFSET   = 0.01;      
 
 
-#if 1
-	/* 
-		for-loop is faster (tested on VS Studio 2019 with OpenCV 4.0.1)
-		Disable this will use std::transform + lambda for looping instead
-	*/
+
+#if 1 // Relase
+	/*  for-loop is faster (tested on VS Studio 2019 with OpenCV 4.0.1)
+		Disable this will use std::transform + lambda for looping in stead  */
 	#define USE_SIMPLE_LOOP 
 
 
-	//#define DEBUG_SHOW_GRADIENT_RESULT
+	#ifdef _OPENMP
+		#include <omp.h>
 
-	#define DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
+		#ifdef __GNUC__
+			#define OMP_FOR(n)  _Pragma("omp parallel for if (n>300000)")
+		#elif _MSC_VER
+			#define OMP_FOR(n)  __pragma(omp parallel for if (n>300000)) 
+		#endif	
+	#else
+		#define omp_get_thread_num() 0
+		#define OMP_FOR(n)
+	#endif // _OPENMP
 
-	//#define DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 
-#else
-	/* 
-		Enable this will imshow conv2D, manitude, gradient, nonMax & thresholding 
-		result in 8-bit
-	*/
-	#define DEBUG_IMSHOW_RESULT
+
+#else // Debug
 
 	#define USE_SIMPLE_LOOP 
+
+
+	/*  Enable this will imshow conv2D, manitude, gradient, nonMax & thresholding
+		result in 8-bit  */
+	// #define DEBUG_IMSHOW_RESULT
 
 	// #define DEBUG_SHOW_GRADIENT_RESULT
 
@@ -76,6 +84,12 @@ public:
 	//		Function will output a 8-bit uchar grayscale image with edges
 	Mat cannyEdge2(Mat& src, float high_thres = 200, float low_thres = 100);
 
+	void release() {
+		magnitude.release();
+		gradient.release();
+		suppressed.release();
+	};
+
 private: 
 
 
@@ -97,6 +111,10 @@ private:
 			}
 		);
 #else
+		int rows = src1.rows,
+			cols = src1.cols;
+
+		OMP_FOR(rows*cols) // Automatically ignored if no openmp support
 		for (int i = 0; i < src1.rows; i++) {
 			const src1_type* gx = src1.ptr<src1_type>(i);
 			const src2_type* gy = src2.ptr<src2_type>(i);
@@ -144,6 +162,9 @@ private:
 		// Result theta range will be within -90 ~ 90, using signed char to store 
 		if (this->gradient.empty()) this->gradient = Mat(src1.rows, src1.cols, CV_8SC1);
 
+		int rows = src1.rows,
+			cols = src1.cols;
+
 #ifndef USE_SIMPLE_LOOP
 		// src2 = G(y) & src1 = G(x)
 		std::transform(src1.begin<src1_type>(), src1.end<src1_type>(), src2.begin<src2_type>(), this->gradient.begin<schar>(),
@@ -163,15 +184,14 @@ private:
 				);
 
 #else
-
-		// Looping is faster than std::transform
-		for (int i = 0; i < src1.rows; i++) {
+		OMP_FOR(rows * cols) // Automatically ignored if no openmp support
+		for (int i = 0; i < rows; i++) {  // Looping is faster than std::transform on VS 2019
 			const src1_type*  gx = src1.ptr<src1_type>(i);
 			const src2_type*  gy = src2.ptr<src2_type>(i);
 			          schar* dst = this->gradient.ptr<schar>(i);
 
 			// Two if statement to improve speed, atan() is expensive
-			for (int j = 0; j < src1.cols; j++) {
+			for (int j = 0; j < cols; j++) {
 				if (gx[j] == 0 && gy[j] != 0)
 					dst[j] = (schar)90;
 				else if (gy[j] == 0)
