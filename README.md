@@ -22,7 +22,7 @@ Use vector or array for storing different caluclate values like magnitudes, grad
 
 ### Update #1:
 
-In branch LUT, where added a fast atan calculation. Result in some performance boost.
+In branch LUT, where added a fast atan calculation. Result in some performance boost. (But minor fixs needed)
 
 | Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  |
 | ------------- |:-------------:| -----:|
