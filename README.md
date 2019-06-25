@@ -20,7 +20,7 @@ Use vector or array for storing different caluclate values like magnitudes, grad
 
 
 
-Update #1:
+### Update #1:
 
 In branch LUT, where added a fast atan calculation. Result in some performance boost.
 
