@@ -7,7 +7,7 @@ In Edge.h, there are two class member functions to do canny edge detection: *can
 
 Performance (CPU: 8700k at 4.4GHz): 
 
-| Input size    |  Time (ms)    | OpenMP Enable?  |
+| Input size    |  Time (ms) (Avg. of 1000 runs)    | OpenMP Enable?  |
 | ------------- |:-------------:| -----:|
 | 637 x 371     |  3.647 ms     | Yes |
 | 637 x 371     |  11.39 ms     |   No |
@@ -17,3 +17,13 @@ Performance (CPU: 8700k at 4.4GHz):
 **Working on:**
 
 Use vector or array for storing different caluclate values like magnitudes, gradient and even convolution result. For a 1-D array, looping through it could be faster than two for-loops.
+
+
+
+Update #1:
+
+In branch LUT, where added a fast atan calculation. Result in some performance boost.
+
+| Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  |
+| ------------- |:-------------:| -----:|
+| 637 x 371     |  3.044 ms     | Yes |
