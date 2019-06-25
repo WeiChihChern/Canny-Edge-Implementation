@@ -39,8 +39,6 @@ void Edge::CannyEdge(Mat& src, Mat &dst, float high_thres, float low_thres) {
 
 	dst = this->hysteresis_threshold(suppressed, high_thres, low_thres);
 
-	magnitude.release();
-	gradient.release();
 	suppressed.release();
 
 	return;
