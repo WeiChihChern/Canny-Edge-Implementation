@@ -183,7 +183,7 @@ public:
 
 
 	template<typename src_type, typename dst_type, typename kernel_type>
-	void conv2_v_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
+	inline void conv2_v_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
 
 		// Params check
 		if (src.empty() || src.channels() == 3) {
@@ -301,7 +301,7 @@ public:
 
 
 	template<typename src_type, typename dst_type, typename kernel_type>
-	void conv2_h_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
+	inline void conv2_h_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
 
 		// Params check
 		if (src.empty() || src.channels() == 3) {
