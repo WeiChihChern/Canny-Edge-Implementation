@@ -112,11 +112,11 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 	// Both magnitude & gradient are in float type
 	if(this->suppressed.empty()) this->suppressed = Mat (magnitude.rows, magnitude.cols, CV_8UC1, Scalar(0));
 	int rows = magnitude.rows,
-		cols = magnitude.cols;
+	    cols = magnitude.cols;
 
 	OMP_FOR(rows * cols) // Automatically ignored if no openmp support
 	for (int i = 1; i < rows-1; i++) {
-			  uchar* dst_ptr = this->suppressed.ptr<uchar>(i);
+		      uchar* dst_ptr = this->suppressed.ptr<uchar>(i);
 		      uchar* mag_ptr = magnitude.ptr<uchar>(i);
 		const schar* gra_ptr = gradient.ptr<schar>(i);
 		
@@ -129,8 +129,10 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 			cout << "( Theta = " << theta << " , Magnitude = " << (int)cur_mag_val << " )";
 #endif 
 
-			if (cur_mag_val != 0) { // Edge pixel
-				if (theta >= 67 && theta <= 112) {
+			if (cur_mag_val != 0) // Edge pixel
+			{ 
+				if (theta >= 67 && theta <= 112) 
+				{
 					// vertical direction
 					if ( cur_mag_val > mag_ptr[j - cols] && cur_mag_val >= mag_ptr[j + cols] ) {
 						dst_ptr[j] = cur_mag_val;
@@ -148,7 +150,8 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 						cout << "[Not suppressed]\n";		
 #endif
 				}
-				else if ((theta < 23 && theta >= 0) || (theta <= 180 && theta > 157)) {
+				else if ((theta < 23 && theta >= 0) || (theta <= 180 && theta > 157)) 
+				{
 					// horizontal direction
 					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val >= mag_ptr[j + 1]) {
 						dst_ptr[j] = cur_mag_val;
@@ -166,7 +169,8 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 						cout << "[Not suppressed]\n";
 #endif
 				}
-				else  { // bottom-left to top-right  or  bottom-right to top-left direction
+				else  // bottom-left to top-right  or  bottom-right to top-left direction
+				{ 
 					int d = (theta > 90) ? 1 : -1;
 					if (cur_mag_val >= mag_ptr[j + cols - d] && cur_mag_val > mag_ptr[j - cols + d]) {
 						dst_ptr[j] = cur_mag_val;
@@ -193,7 +197,8 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 #endif
 				}
 			} 
-			else { // Non edge pixel
+			else // Non edge pixel
+			{ 
 				dst_ptr[j] = 0;
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 				cout << " -> [Mag == 0]" << endl;
@@ -229,7 +234,7 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	if (src.empty() || src.channels() == 3) { cout << "hysteresis_threshold() error!\n"; return Mat(0,0,CV_8UC1); }
 
 	int rows = src.rows,
-		cols = src.cols;
+	    cols = src.cols;
 
 #ifndef USE_SIMPLE_LOOP
 	std::transform(src.begin<float>(), src.end<float>(), src.begin<float>(), 
@@ -246,9 +251,11 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	
 
 	OMP_FOR(rows * cols) // Automatically ignored if no openmp support
-	for (int i = 0; i < src.rows; i++) {
+	for (int i = 0; i < src.rows; i++) 
+	{
 		uchar* src_ptr = src.ptr<uchar>(i);
-		for (int j = 0; j < src.cols; j++) {
+		for (int j = 0; j < src.cols; j++) 
+		{
 			if (src_ptr[j] >= high_thres)
 				src_ptr[j] = 255;
 			else if (src_ptr[j] < high_thres && src_ptr[j] >= low_thres)
@@ -270,11 +277,13 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	Mat dst(src.rows, src.cols, CV_8UC1, Scalar(0));
 	
 	OMP_FOR(rows * cols) // Automatically ignored if no openmp support
-	for (int i = 1; i < rows-1; i++) {
+	for (int i = 1; i < rows-1; i++) 
+	{
 		uchar* neighbor_result    = dst.ptr<uchar>(i);
 		uchar* double_thresholded = src.ptr<uchar>(i);
 			
-		for (int j = 1; j < cols-1; j++) {
+		for (int j = 1; j < cols-1; j++) 
+		{
 			if (double_thresholded[j] == 0)        // No edge found
 			{
 				neighbor_result[j] = 0;
