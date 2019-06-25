@@ -239,13 +239,23 @@ private:
 			          schar* dst = this->gradient.ptr<schar>(i);
 
 			// Two if statement to improve speed, atan() is expensive
-			for (int j = 0; j < cols; j++) 
+	    	for (int j = 0; j < cols; j++)
 			{
-					dst[j] = (schar)( this->FastArcTan( (double)gy[j] / (double)gx[j] )  * TO_THETA);
+				if (gy[j] == 0)
+				{
+					dst[j] = (schar)0;
+				}
+				else if (gx[j] == 0)
+				{
+					dst[j] = (schar)90;
+				}
+				else 
+				{
+					dst[j] = (schar)(this->FastArcTan((double)gy[j] / (double)gx[j])  * TO_THETA);
+				}
 #ifdef DEBUG_SHOW_GRADIENT_RESULT
 					cout << (int)dst[j] << " : y=" << gy[j] << ", x=" << gx[j] << endl;
 #endif
-				
 			}
 		}
 
