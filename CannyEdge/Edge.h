@@ -114,7 +114,8 @@ public:
 
 
 
-	void release() {
+	void release() 
+	{
 		magnitude.release();
 		gradient.release();
 		suppressed.release();
@@ -134,7 +135,8 @@ private:
 	// Output:
 	//		Will save a uchar result to member variable 'magnitude'
 	template <typename src1_type, typename src2_type>
-	inline void calculate_Magnitude(const Mat& src1, const Mat& src2, bool To_8bits = false) {
+	inline void calculate_Magnitude(const Mat& src1, const Mat& src2, bool To_8bits = false) 
+	{
 
 		if (this->magnitude.empty() || this->magnitude.type() != CV_32FC1) this->magnitude = Mat(src1.rows, src1.cols, CV_32FC1);
 
@@ -150,12 +152,14 @@ private:
 			cols = src1.cols;
 
 		OMP_FOR(rows*cols) // Automatically ignored if no openmp support
-		for (int i = 0; i < src1.rows; i++) {
+		for (int i = 0; i < src1.rows; i++) 
+		{
 			const src1_type* gx = src1.ptr<src1_type>(i);
 			const src2_type* gy = src2.ptr<src2_type>(i);
 			float* dst = this->magnitude.ptr<float>(i);
 
-			for (int j = 0; j < src1.cols; j++) {
+			for (int j = 0; j < src1.cols; j++) 
+			{ 
 				dst[j] = std::sqrt(gy[j] * gy[j] + gx[j] * gx[j]);
 			}
 		}
@@ -167,12 +171,14 @@ private:
 
 
 #ifdef DEBUG_IMSHOW_RESULT
-		if (this->magnitude.depth() != CV_8UC1) {
+		if (this->magnitude.depth() != CV_8UC1) 
+		{
 			Mat magnitude_show;
 			this->magnitude.convertTo(magnitude_show, CV_8UC1);
 			imshow("calculate_magnitude() result in 8-bit (from float)", magnitude_show);
 		}
-		else {
+		else 
+		{
 			imshow("calculate_magnitude() result in 8-bit (from float)", this->magnitude);
 		}
 		waitKey(10);
@@ -197,7 +203,8 @@ private:
 	// Output:
 	//		Will save a uchar result to member variable 'gradient'
 	template <typename src1_type, typename src2_type>
-	inline void calculate_Gradients(const Mat& src1, const Mat& src2) {
+	inline void calculate_Gradients(const Mat& src1, const Mat& src2) 
+	{
 
 		// Result theta range will be within -90 ~ 90, using signed char to store 
 		if (this->gradient.empty()) this->gradient = Mat(src1.rows, src1.cols, CV_8SC1);
@@ -225,13 +232,15 @@ private:
 
 #else
 		OMP_FOR(rows * cols) // Automatically ignored if no openmp support
-		for (int i = 0; i < rows; i++) {  // Looping is faster than std::transform on VS 2019
+		for (int i = 0; i < rows; i++) // Looping is faster than std::transform on VS 2019 & 2015
+		{  
 			const src1_type*  gx = src1.ptr<src1_type>(i);
 			const src2_type*  gy = src2.ptr<src2_type>(i);
 			          schar* dst = this->gradient.ptr<schar>(i);
 
 			// Two if statement to improve speed, atan() is expensive
-			for (int j = 0; j < cols; j++) {
+			for (int j = 0; j < cols; j++) 
+			{
 				if (gx[j] == 0 && gy[j] != 0)
 					dst[j] = (schar)90;
 				else if (gy[j] == 0)
@@ -240,7 +249,8 @@ private:
 					dst[j] = (schar)45;
 				else if (gy[j] / gx[j] == -1)
 					dst[j] = (schar)-45;
-				else {
+				else 
+				{
 					dst[j] = (schar)(std::atan((float)gy[j] / (float)gx[j]) * TO_THETA);
 #ifdef DEBUG_SHOW_GRADIENT_RESULT
 					cout << (int)dst[j] << " : y=" << gy[j] << ", x=" << gx[j] << endl;
