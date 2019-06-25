@@ -24,7 +24,7 @@ int main() {
 
 	Timer timer;
 	Edge tool;
-	int iterations = 200;
+	int iterations = 1;
 	Mat result, 
 		input = big;
 	

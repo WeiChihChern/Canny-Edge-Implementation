@@ -325,7 +325,7 @@ public:
 		int offset_col = k_size / 2;
 		int k_idx = -offset_col;
 
-		OMP_FOR( src_rows * (src_cols - offset_col) ) // Automatically ignored if no openmp support
+		OMP_FOR( src_rows * src_cols ) // Automatically ignored if no openmp support
 		for (int i = 0; i < src_rows; i++) {
 			const src_type* src_ptr = src.ptr<src_type>(i);
 				  dst_type* dst_ptr = dst.ptr<dst_type>(i);
