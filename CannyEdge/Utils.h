@@ -29,9 +29,19 @@ class Utils
 {
 
 public:
+
 	Utils() {};
 	~Utils() {};
 	
+
+
+
+
+
+
+
+
+
 
 	// User will have to specifiy what type the input 'src' is, 
 	//     Ex: uchar -> CV_8UC1, 
@@ -88,7 +98,15 @@ public:
 
 		return;
 	};
-	
+
+
+
+
+
+
+
+
+
 
 
 
@@ -154,6 +172,16 @@ public:
 	};
 
 
+
+
+
+
+
+
+
+
+
+
 	template<typename src_type, typename dst_type, typename kernel_type>
 	void conv2_v_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
 
@@ -193,6 +221,16 @@ public:
 			}
 		}
 	};
+
+
+
+
+
+
+
+
+
+
 
 
 	template<typename src_type, typename dst_type, typename kernel_type>
@@ -251,6 +289,15 @@ public:
 
 	
 	};
+
+
+
+
+
+
+
+
+
 
 
 

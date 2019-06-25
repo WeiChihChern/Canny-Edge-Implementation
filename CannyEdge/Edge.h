@@ -1,11 +1,14 @@
 #pragma once
 #include <vector>
 
+
 #include "opencv2/opencv.hpp"
 #include "Utils.h"
 
+
 using namespace std;
 using namespace cv;
+
 
 constexpr auto PI = 3.14159265;
 constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
@@ -52,6 +55,9 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 
 
 
+
+
+
 class Edge : public Utils // Utils includes 2-D & 1-D convolution functions
 {
 public:
@@ -71,9 +77,25 @@ public:
 
 	Edge();
 	~Edge();
+
+
+
+
+
+
+
+
 	
 	// CannyEdge() use a 3x3 kernel for covlution which is slower than CannyEdge2()
 	void CannyEdge(Mat &src, Mat &dst, float high_thres = 200, float low_thres = 100);
+
+
+
+
+
+
+
+
 
 	// CannEdge2() separate the sobel kernel to two 3-element kernel for convolution,
 	// so its faster than CannyEdge().  And the convolution process is further optimized
@@ -84,13 +106,26 @@ public:
 	//		Function will output a 8-bit uchar grayscale image with edges
 	void cannyEdge2(Mat& src, Mat &dst, float high_thres = 200, float low_thres = 100);
 
+
+
+
+
+
+
+
+
 	void release() {
 		magnitude.release();
 		gradient.release();
 		suppressed.release();
 	};
 
+
+
+
 private: 
+
+
 
 
 	// This function uses square root of the sum of the squares: ( G(x)^2 + G(y)^2 )^0.5
@@ -149,7 +184,12 @@ private:
 
 
 
-	
+
+
+
+
+
+
 	// This function uses std::atan() to calculate gradient and multiply a constexpr 'TO_THETA'
 	// to convert it to degree.
 	// Input params: 
@@ -222,7 +262,14 @@ private:
 
 		return;
 	};
-	
+
+
+
+
+
+
+
+
 
 
 
@@ -232,6 +279,16 @@ private:
 	// Output:
 	//		Will save a uchar result to member variable 'suppressed'
 	void nonMaxSuppresion(Mat& magnitude, const Mat& gradient);
+
+
+
+
+
+
+
+
+
+
 
 
 	// Input params: 

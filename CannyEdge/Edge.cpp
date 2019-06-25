@@ -13,6 +13,13 @@ Edge::~Edge()
 }
 
 
+
+
+
+
+
+
+
 void Edge::CannyEdge(Mat& src, Mat &dst, float high_thres, float low_thres) {
 
 	Mat copy1, copy2;
@@ -38,6 +45,16 @@ void Edge::CannyEdge(Mat& src, Mat &dst, float high_thres, float low_thres) {
 
 	return;
 }
+
+
+
+
+
+
+
+
+
+
 
 
 void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
@@ -81,6 +98,12 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 	return;
 
 }
+
+
+
+
+
+
 
 
 
@@ -189,6 +212,16 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 
 	return;
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
