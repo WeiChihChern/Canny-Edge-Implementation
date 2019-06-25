@@ -252,6 +252,7 @@ private:
 				else 
 				{
 					dst[j] = (schar)(this->FastArcTan((double)gy[j] / (double)gx[j])  * TO_THETA);
+					//dst[j] = (schar)(std::atan((float)gy[j] / (float)gx[j]) * TO_THETA);
 				}
 #ifdef DEBUG_SHOW_GRADIENT_RESULT
 					cout << (int)dst[j] << " : y=" << gy[j] << ", x=" << gx[j] << endl;
