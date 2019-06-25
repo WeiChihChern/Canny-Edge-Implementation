@@ -17,3 +17,13 @@ Performance (CPU: 8700k at 4.4GHz):
 **Working on:**
 
 Use vector or array for storing different caluclate values like magnitudes, gradient and even convolution result. For a 1-D array, looping through it could be faster than two for-loops.
+
+
+
+### Update #1:
+
+In branch LUT, where added a fast atan calculation. Result in some performance boost. (But minor fixs exist)
+
+| Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  |
+| ------------- |:-------------:| -----:|
+| 637 x 371     |  3.044 ms     | Yes |
