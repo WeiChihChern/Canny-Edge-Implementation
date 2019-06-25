@@ -38,7 +38,7 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 
 
 #else // Debug
-
+	#define OMP_FOR(n)
 	#define USE_SIMPLE_LOOP 
 
 
