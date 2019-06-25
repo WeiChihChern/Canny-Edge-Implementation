@@ -27,3 +27,11 @@ In branch LUT, where added a fast atan calculation. Result in some performance b
 | Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  |
 | ------------- |:-------------:| -----:|
 | 637 x 371     |  3.044 ms     | Yes |
+
+### Update #2:
+
+Done some optimizations in LUT
+
+| Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  |
+| ------------- |:-------------:| -----:|
+| 637 x 371     |  2.469 ms     | Yes |
