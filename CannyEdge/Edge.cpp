@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <math.h>
 
+
 Edge::Edge()
 {
 }
@@ -366,4 +367,12 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 
 
 	return dst;
+}
+
+
+
+
+inline double Edge::FastArcTan(double x)
+{
+	return 0.785398163397448309616*x - x*(fabs(x) - 1)*(0.2447 + 0.0663*fabs(x));
 }

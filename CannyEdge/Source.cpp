@@ -24,11 +24,11 @@ int main() {
 
 	Timer timer;
 	Edge tool;
-	int iterations = 1;
+	int iterations = 1000;
 	Mat result, 
-		input = big;
+		input = small;
 	
-
+	
 
 	timer.start();
 	for (int i = 0; i < iterations; i++) {

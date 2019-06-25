@@ -66,8 +66,8 @@ public:
 	vector<vector<float>>   sobel_vertical = { {-1, -2, -1}, {0, 0, 0}, {1, 2, 1} };
 
 	// Separate 2-D kernel to two 1-D kernels for speed boost
-	vector<float>                sobel_one = { 1, 0, -1 };
-	vector<float>                sobel_two = { 1, 2, 1 };
+	vector<float> sobel_one = { 1, 0, -1 };
+	vector<float> sobel_two = { 1, 2, 1 };
 
 	
 	Mat magnitude, 
@@ -241,21 +241,11 @@ private:
 			// Two if statement to improve speed, atan() is expensive
 			for (int j = 0; j < cols; j++) 
 			{
-				if (gx[j] == 0 && gy[j] != 0)
-					dst[j] = (schar)90;
-				else if (gy[j] == 0)
-					dst[j] = (schar)0;
-				else if (gy[j] / gx[j] == 1)
-					dst[j] = (schar)45;
-				else if (gy[j] / gx[j] == -1)
-					dst[j] = (schar)-45;
-				else 
-				{
-					dst[j] = (schar)(std::atan((float)gy[j] / (float)gx[j]) * TO_THETA);
+					dst[j] = (schar)( this->FastArcTan( (double)gy[j] / (double)gx[j] )  * TO_THETA);
 #ifdef DEBUG_SHOW_GRADIENT_RESULT
 					cout << (int)dst[j] << " : y=" << gy[j] << ", x=" << gx[j] << endl;
 #endif
-				}
+				
 			}
 		}
 
@@ -306,6 +296,12 @@ private:
 	// Output:
 	//		will do thresholding inplace in member variable 'suppressed'
 	Mat hysteresis_threshold(Mat& src, float high_thres = 200, float low_thres = 100);
+
+
+
+
+
+	inline double FastArcTan(double x);
 	
 };
 
