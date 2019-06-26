@@ -28,4 +28,4 @@ Done some optimizations in LUT, and added a fast atan approximation function
 
 **Working on:**
 
-Use vector or array for storing different caluclate values like magnitudes, gradient and even convolution result. For a 1-D array, looping through it could be faster than two for-loops.
+Use vector or array for storing different caluclate values like magnitudes, gradient and even convolution result. 
