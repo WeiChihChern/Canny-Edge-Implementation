@@ -16,7 +16,7 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 
 
 
-#if 1 // Relase
+#ifndef _DEBUG // Relase
 	/*  for-loop is faster (tested on VS Studio 2019/2015 with OpenCV 4.0.1)
 		Disable this will use std::transform + lambda for looping in stead  */
 	#define USE_SIMPLE_LOOP 
