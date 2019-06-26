@@ -17,8 +17,8 @@ int main() {
 
 	Mat small = imread("Capture.PNG", 0);
 
-	Mat big;
-	resize(small, big, Size(3840, 2160)); // For benchmark only
+	//Mat big;
+	//resize(small, big, Size(3840, 2160)); // For benchmark only
 
 	GaussianBlur(small, small, Size(3, 3), 0.5);
 
