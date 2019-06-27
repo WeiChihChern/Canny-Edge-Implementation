@@ -215,9 +215,9 @@ public:
 
 			for (int j = 0; j < src_cols; j++) {
 
-				float sum  = src_ptr[j - src_cols]       * kernel[0];
-				      sum += src_ptr[j]                  * kernel[1];
-				dst_ptr[j] = sum + src_ptr[j + src_cols] * kernel[2];
+				float sum  = *(src_ptr + j - src_cols)       * kernel[0];
+				      sum += *(src_ptr + j)                  * kernel[1];
+				*(dst_ptr + j) = sum + *(src_ptr + j + src_cols) * kernel[2];
 			}
 		}
 	};
@@ -332,9 +332,9 @@ public:
 
 			for (int j = offset_col; j < (src_cols - offset_col); j++) {
 				
-				float sum  = src_ptr[j - 1]        * kernel[0];
-				      sum += src_ptr[j]            * kernel[1];
-			    dst_ptr[j] = sum + src_ptr[j + 1]  * kernel[2];
+				float sum  = *(src_ptr+1)        * kernel[0];
+				      sum += *(src_ptr+j)            * kernel[1];
+			    *(dst_ptr+j) = sum + *(src_ptr+j+1)  * kernel[2];
 				
 			}
 		}

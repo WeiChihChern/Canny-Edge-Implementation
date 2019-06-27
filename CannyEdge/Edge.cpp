@@ -257,13 +257,13 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 		uchar* src_ptr = src.ptr<uchar>(i);
 		for (int j = 0; j < src.cols; j++) 
 		{
-			uchar val = src_ptr[j];
-			if (val >= high_thres)
-				src_ptr[j] = 255;
-			else if (val < high_thres && val >= low_thres)
-				src_ptr[j] = 125;
+			uchar* val = (src_ptr + j);
+			if (*val >= high_thres)
+				* val = 255;
+			else if (*val < high_thres && *val >= low_thres)
+				*val = 125;
 			else
-				src_ptr[j] = 0;
+				*val = 0;
 		}
 	}
 
@@ -296,49 +296,49 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 			}
 			else if (val == 125) // potential strong edge pixel
 			{
-				if (double_thresholded[j - 1] == 255) {
+				if (*(double_thresholded + j - 1) == 255) {
 					neighbor_result[j] = 255;
 #ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 					cout << "Neighbor 255 is at: j - 1\n";
 #endif 
 				}
-				else if (double_thresholded[j + 1] == 255) {
+				else if (*(double_thresholded + j + 1) == 255) {
 					neighbor_result[j] = 255;
 #ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 					cout << "Neighbor 255 is at: j + 1\n";
 #endif 
 				}
-				else if (double_thresholded[j - cols] == 255) {
+				else if (*(double_thresholded+j - cols) == 255) {
 					neighbor_result[j] = 255;
 #ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 					cout << "Neighbor 255 is at: j - cols\n";
 #endif 
 				}
-				else if (double_thresholded[j + cols] == 255) {
+				else if (*(double_thresholded + j + cols) == 255) {
 					neighbor_result[j] = 255;
 #ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 					cout << "Neighbor 255 is at: j + cols\n";
 #endif 
 				}
-				else if (double_thresholded[j - cols - 1] == 255) {
+				else if (*(double_thresholded + j - cols - 1) == 255) {
 					neighbor_result[j] = 255;
 #ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 					cout << "Neighbor 255 is at: j - cols - 1\n";
 #endif 
 				}
-				else if (double_thresholded[j - cols + 1] == 255) {
+				else if (*(double_thresholded + j - cols + 1) == 255) {
 				neighbor_result[j] = 255;
 #ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 				cout << "Neighbor 255 is at: j + cols + 1\n";
 #endif 
 				}
-				else if (double_thresholded[j + cols + 1] == 255) {
+				else if (*(double_thresholded + j + cols + 1) == 255) {
 					neighbor_result[j] = 255;
 #ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 					cout << "Neighbor 255 is at: j + cols + 1\n";
 #endif 
 				}
-				else if (double_thresholded[j + cols - 1] == 255) {
+				else if (*(double_thresholded + j + cols - 1) == 255) {
 					neighbor_result[j] = 255;
 #ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 					cout << "Neighbor 255 is at: j + cols - 1\n";

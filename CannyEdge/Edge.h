@@ -160,7 +160,9 @@ private:
 
 			for (int j = 0; j < src1.cols; j++) 
 			{ 
-				dst[j] = std::sqrt(gy[j] * gy[j] + gx[j] * gx[j]);
+				float gyy = *(gy+j);
+				float gxx = *(gx+j);
+				*(dst+j) = std::sqrt(gyy * gyy + gxx * gxx);
 			}
 		}
 #endif
@@ -241,17 +243,19 @@ private:
 			// Two if statement to improve speed, atan() is expensive
 	    	for (int j = 0; j < cols; j++)
 			{
-				if (gy[j] == 0)
+				double gyy = *(gy + j);
+				double gxx = *(gx + j);
+				if (gyy == 0)
 				{
-					dst[j] = (schar)0;
+					*(dst + j) = (schar)0;
 				}
-				else if (gx[j] == 0)
+				else if (gxx == 0)
 				{
-					dst[j] = (schar)90;
+					*(dst + j) = (schar)90;
 				}
 				else 
 				{
-					dst[j] = (schar)(this->FastArcTan((double)gy[j] / (double)gx[j])  * TO_THETA);
+					*(dst + j) = (schar)(this->FastArcTan(gyy / gxx)  * TO_THETA);
 					//dst[j] = (schar)(std::atan((float)gy[j] / (float)gx[j]) * TO_THETA);
 				}
 #ifdef DEBUG_SHOW_GRADIENT_RESULT
