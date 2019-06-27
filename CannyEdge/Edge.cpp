@@ -130,8 +130,8 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 		const schar* gra_ptr = gradient.ptr<schar>(i);
 		
 		for (int j = 1; j < this->cols-1; j++) {
-			short       theta = (gra_ptr[j] < 0) ? 180+ gra_ptr[j] : gra_ptr[j];
-			uchar cur_mag_val = mag_ptr[j];
+			short       theta = (*(gra_ptr+j) < 0) ? 180 + *(gra_ptr+j) : *(gra_ptr+j);
+			uchar cur_mag_val = *(mag_ptr+j);
 
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 			bool suppressed_to_zero = false;
@@ -143,7 +143,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 				if (theta >= 67 && theta <= 112) 
 				{
 					// vertical direction
-					if ( cur_mag_val > mag_ptr[j - cols] && cur_mag_val >= mag_ptr[j + cols] ) {
+					if ( cur_mag_val > *(mag_ptr + j - cols) && cur_mag_val >= *(mag_ptr + j + cols) ) {
 						dst_ptr[j] = cur_mag_val;
 					} 
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
@@ -162,7 +162,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 				else if ((theta < 23 && theta >= 0) || (theta <= 180 && theta > 157)) 
 				{
 					// horizontal direction
-					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val >= mag_ptr[j + 1]) {
+					if (cur_mag_val > *(mag_ptr + j - 1) && cur_mag_val >= *(mag_ptr + j + 1)) {
 						dst_ptr[j] = cur_mag_val;
 					}
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
@@ -181,7 +181,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 				else  // bottom-left to top-right  or  bottom-right to top-left direction
 				{ 
 					int d = (theta > 90) ? 1 : -1;
-					if (cur_mag_val >= mag_ptr[j + cols - d] && cur_mag_val > mag_ptr[j - cols + d]) {
+					if (cur_mag_val >= *(mag_ptr + j + cols - d) && cur_mag_val > *(mag_ptr + j - cols + d)) {
 						dst_ptr[j] = cur_mag_val;
 					}
 #ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
@@ -219,7 +219,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 
 #ifdef DEBUG_IMSHOW_RESULT
 	imshow("Edge class's nonMaxSuppression() result in 8-bit (from float)", this->suppressed);
-	waitKey(0);
+	waitKey(10);
 #endif 
 
 	return;
@@ -292,10 +292,10 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 			
 		for (int j = 1; j < this->cols-1; j++) 
 		{
-			uchar val = double_thresholded[j];
+			uchar val = *(double_thresholded + j);
 			if (val == 0)        // No edge found
 			{
-				neighbor_result[j] = 0;
+				*(neighbor_result + j) = 0;
 #ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 				cout << "Not a edge pixel, no checking needed.\n";
 #endif 

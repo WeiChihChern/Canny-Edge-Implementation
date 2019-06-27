@@ -181,57 +181,7 @@ public:
 
 
 
-
-
-	template<typename src_type, typename dst_type, typename kernel_type>
-	inline void conv2_v_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
-
-		// Params check
-		if (src.empty() || src.channels() == 3) {
-			cout << "conv2_vsobel() input error.\n";
-			return;
-		}
-		if (kernel.size() % 2 == 0) {
-			cout << "conv2_v_sobel() kernel size error. \n";
-			return;
-		}
-
-
-		// Inits
-		if (dst.empty()) dst = Mat(src.rows, src.cols, CV_32FC1);
-
-		int k_size = kernel.size();
-
-		int offset_row = k_size / 2;
-		int k_idx = -offset_row;
-		int rows = src.rows;
-		int cols = src.cols;
-		
-		OMP_FOR( rows*cols ) // Automatically ignored if no openmp support
-		for (int i = offset_row; i < (rows - offset_row); i++) { // Start looping
-			const src_type* src_ptr = src.ptr<src_type>(i);
-				  dst_type* dst_ptr = dst.ptr<dst_type>(i);
-			const kernel_type* val = &kernel[0];
-
-			for (int j = 0; j < cols; j++) {
-				
-
-				float sum  = *(src_ptr + j - cols)           *  *(val);
-				      sum += *(src_ptr + j)                      *  *(val+1);
-				*(dst_ptr + j) = sum + *(src_ptr + j + cols) *  *(val+2);
-			}
-		}
-	};
-
-
-
-
-
-
-
-
-
-
+	   	  
 
 
 	template<typename src_type, typename dst_type, typename kernel_type>
@@ -334,8 +284,8 @@ public:
 
 			for (int j = offset_col; j < (cols - offset_col); j++) {
 
-				float sum  = *(src_ptr+1)            *   *(val);
-				      sum += *(src_ptr+j)            *   *(val+1);
+				float sum  = *(src_ptr + j - 1)      *   *(val);
+				      sum += *(src_ptr + j)          *   *(val+1);
 			    *(dst_ptr+j) = sum + *(src_ptr+j+1)  *   *(val+2);
 				
 			}
@@ -344,6 +294,57 @@ public:
 	};
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+	template<typename src_type, typename dst_type, typename kernel_type>
+	inline void conv2_v_sobel(const Mat& src, Mat& dst, const vector<kernel_type>& kernel) {
+
+		// Params check
+		if (src.empty() || src.channels() == 3) {
+			cout << "conv2_vsobel() input error.\n";
+			return;
+		}
+		if (kernel.size() % 2 == 0) {
+			cout << "conv2_v_sobel() kernel size error. \n";
+			return;
+		}
+
+
+		// Inits
+		if (dst.empty()) dst = Mat(src.rows, src.cols, CV_32FC1);
+
+		int k_size = kernel.size();
+
+		int offset_row = k_size / 2;
+		int k_idx = -offset_row;
+		int rows = src.rows;
+		int cols = src.cols;
+
+		OMP_FOR(rows * cols) // Automatically ignored if no openmp support
+			for (int i = offset_row; i < (rows - offset_row); i++) { // Start looping
+				const src_type* src_ptr = src.ptr<src_type>(i);
+				      dst_type* dst_ptr = dst.ptr<dst_type>(i);
+				const kernel_type*  val = &kernel[0];
+
+				for (int j = 0; j < cols; j++) {
+
+
+					float sum  = *(src_ptr + j - cols) * *(val);
+						  sum += *(src_ptr + j)        * *(val + 1);
+					*(dst_ptr + j) = sum + *(src_ptr + j + cols) * *(val + 2);
+				}
+			}
+	};
 
 };
 

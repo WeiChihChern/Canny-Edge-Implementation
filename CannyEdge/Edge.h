@@ -48,7 +48,7 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 
 	// #define DEBUG_SHOW_GRADIENT_RESULT
 
-	 #define DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
+	// #define DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
 
 	// #define DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
 #endif
@@ -253,7 +253,7 @@ private:
 				else 
 				{
 					*(dst + j) = (schar)(this->FastArcTan(gyy / gxx)  * TO_THETA);
-					//dst[j] = (schar)(std::atan((float)gy[j] / (float)gx[j]) * TO_THETA);
+					//*(dst + j) = (schar)(std::atan((float)gyy / (float)gxx) * TO_THETA);
 				}
 #ifdef DEBUG_SHOW_GRADIENT_RESULT
 					cout << (int)dst[j] << " : y=" << gy[j] << ", x=" << gx[j] << endl;
