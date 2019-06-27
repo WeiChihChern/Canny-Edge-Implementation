@@ -74,6 +74,7 @@ public:
 		gradient, 
 		suppressed;
 
+	int rows, cols, size;
 
 	Edge();
 	~Edge();
@@ -148,17 +149,15 @@ private:
 			}
 		);
 #else
-		int rows = src1.rows,
-			cols = src1.cols;
-
-		OMP_FOR(rows*cols) // Automatically ignored if no openmp support
-		for (int i = 0; i < src1.rows; i++) 
+		
+		OMP_FOR(this->size) // Automatically ignored if no openmp support
+		for (int i = 0; i < this->rows; i++) 
 		{
 			const src1_type* gx = src1.ptr<src1_type>(i);
 			const src2_type* gy = src2.ptr<src2_type>(i);
 			float* dst = this->magnitude.ptr<float>(i);
 
-			for (int j = 0; j < src1.cols; j++) 
+			for (int j = 0; j < this->cols; j++) 
 			{ 
 				float gyy = *(gy+j);
 				float gxx = *(gx+j);
@@ -209,10 +208,8 @@ private:
 	{
 
 		// Result theta range will be within -90 ~ 90, using signed char to store 
-		if (this->gradient.empty()) this->gradient = Mat(src1.rows, src1.cols, CV_8SC1);
+		if (this->gradient.empty()) this->gradient = Mat(this->rows, this->cols, CV_8SC1);
 
-		int rows = src1.rows,
-			cols = src1.cols;
 
 #ifndef USE_SIMPLE_LOOP
 		// src2 = G(y) & src1 = G(x)
@@ -233,15 +230,15 @@ private:
 				);
 
 #else
-		OMP_FOR(rows * cols) // Automatically ignored if no openmp support
-		for (int i = 0; i < rows; i++) // Looping is faster than std::transform on VS 2019 & 2015
+		OMP_FOR(this->size) // Automatically ignored if no openmp support
+		for (int i = 0; i < this->rows; i++) // Looping is faster than std::transform on VS 2019 & 2015
 		{  
 			const src1_type*  gx = src1.ptr<src1_type>(i);
 			const src2_type*  gy = src2.ptr<src2_type>(i);
 			          schar* dst = this->gradient.ptr<schar>(i);
 
 			// Two if statement to improve speed, atan() is expensive
-	    	for (int j = 0; j < cols; j++)
+	    	for (int j = 0; j < this->cols; j++)
 			{
 				double gyy = *(gy + j);
 				double gxx = *(gx + j);

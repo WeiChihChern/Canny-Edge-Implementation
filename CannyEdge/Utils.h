@@ -200,24 +200,25 @@ public:
 		// Inits
 		if (dst.empty()) dst = Mat(src.rows, src.cols, CV_32FC1);
 
-		int k_size = kernel.size(),
-			src_rows = src.rows,
-			src_cols = src.cols;
+		int k_size = kernel.size();
 
 		int offset_row = k_size / 2;
 		int k_idx = -offset_row;
-
+		int rows = src.rows;
+		int cols = src.cols;
 		
-		OMP_FOR( (src_rows - offset_row) * src_cols ) // Automatically ignored if no openmp support
-		for (int i = offset_row; i < (src.rows - offset_row); i++) { // Start looping
+		OMP_FOR( rows*cols ) // Automatically ignored if no openmp support
+		for (int i = offset_row; i < (rows - offset_row); i++) { // Start looping
 			const src_type* src_ptr = src.ptr<src_type>(i);
 				  dst_type* dst_ptr = dst.ptr<dst_type>(i);
+			const kernel_type* val = &kernel[0];
 
-			for (int j = 0; j < src_cols; j++) {
+			for (int j = 0; j < cols; j++) {
+				
 
-				float sum  = *(src_ptr + j - src_cols)       * kernel[0];
-				      sum += *(src_ptr + j)                  * kernel[1];
-				*(dst_ptr + j) = sum + *(src_ptr + j + src_cols) * kernel[2];
+				float sum  = *(src_ptr + j - cols)           *  *(val);
+				      sum += *(src_ptr + j)                      *  *(val+1);
+				*(dst_ptr + j) = sum + *(src_ptr + j + cols) *  *(val+2);
 			}
 		}
 	};
@@ -318,23 +319,24 @@ public:
 		// Inits
 		if (dst.empty()) dst = Mat(src.rows, src.cols, CV_32FC1);
 
-		int k_size = kernel.size(),
-			src_rows = src.rows,
-			src_cols = src.cols;
+		int k_size = kernel.size();
 
 		int offset_col = k_size / 2;
 		int k_idx = -offset_col;
+		int rows = src.rows;
+		int cols = src.cols;
 
-		OMP_FOR( src_rows * src_cols ) // Automatically ignored if no openmp support
-		for (int i = 0; i < src_rows; i++) {
+		OMP_FOR( rows*cols) // Automatically ignored if no openmp support
+		for (int i = 0; i < rows; i++) {
 			const src_type* src_ptr = src.ptr<src_type>(i);
 				  dst_type* dst_ptr = dst.ptr<dst_type>(i);
+			const kernel_type* val = &kernel[0];
 
-			for (int j = offset_col; j < (src_cols - offset_col); j++) {
-				
-				float sum  = *(src_ptr+1)        * kernel[0];
-				      sum += *(src_ptr+j)            * kernel[1];
-			    *(dst_ptr+j) = sum + *(src_ptr+j+1)  * kernel[2];
+			for (int j = offset_col; j < (cols - offset_col); j++) {
+
+				float sum  = *(src_ptr+1)            *   *(val);
+				      sum += *(src_ptr+j)            *   *(val+1);
+			    *(dst_ptr+j) = sum + *(src_ptr+j+1)  *   *(val+2);
 				
 			}
 		}
