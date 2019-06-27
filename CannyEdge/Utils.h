@@ -8,11 +8,12 @@ using namespace cv;
 
 #ifdef _OPENMP
 	#include <omp.h>
+	#define numThreads 4		
 
 	#ifdef __GNUC__
 		#define OMP_FOR(n)  _Pragma("omp parallel for if (n>300000)")
 	#elif _MSC_VER
-		#define OMP_FOR(n)  __pragma(omp parallel for if (n>100)) 
+		#define OMP_FOR(n)  __pragma(omp parallel for if (n>100) num_threads(numThreads)) 
 	#endif	
 #else
 	#define omp_get_thread_num() 0
