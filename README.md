@@ -27,10 +27,10 @@ Done some optimizations in LUT, and added a fast atan approximation function
 
 
 # Update #3 (in branch LUT) 6/28
-1. Added Makefile (`make clean` supported) for ubuntu. Just `make` to compile.
-2. Added argument support for selecting benchmark parameteres (smalle or large image, number of iterations)
-3. Edited `define marco` for gcc (version 7.4.0) compiler
-4. Provided a docker image: `docker pull wchern/dev:opencv410`
+- Added Makefile (`make clean` supported) for ubuntu. Just `make` to compile.
+- Added argument support for selecting benchmark parameteres (smalle or large image, number of iterations)
+- Edited `define marco` for gcc (version 7.4.0) compiler
+- Provided a docker image: [docker pull wchern/dev:opencv410](https://cloud.docker.com/u/wchern/repository/docker/wchern/dev)
 
 | Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  | Env |
 | ------------- |:-------------:| -----:|----------:|
