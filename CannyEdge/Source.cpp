@@ -29,6 +29,10 @@ int main(int argc, char* argv[]) {
 		_big = true;
 		cout << "Using Large image (4K) for benchmark!\n";
 	}
+	else
+	{
+		cout << "Using small image (637 x 371) for benchmark!\n";
+	}
 
 	if (strcmp(argv[2], "-iter") == 0)
 	{
