@@ -49,4 +49,4 @@ Parameter Usage: `./app_name -firstPara -secPara thirPara` </br>
 
 **Working on:**
 1. Learning SIMD
-2. To use vector or array for storing different caluclate values like magnitudes, gradient and even convolution result. 
+
