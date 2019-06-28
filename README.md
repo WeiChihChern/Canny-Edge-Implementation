@@ -16,14 +16,29 @@ Performance (CPU: 8700k at 4.4GHz):
 
 # Update #2 (in branch LUT):
 
-Done some optimizations in LUT, and added a fast atan approximation function
+Done some optimizations in LUT, and added a fast atan approximation function 
 
-| Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  |
-| ------------- |:-------------:| -----:|
-| 637 x 371     |  2.469 ms     | Yes |
-| 637 x 371     |  6.675 ms     |   No |
-| 3840 x 2160   |  83.13 ms   |   Yes |
-| 3840 x 2160   | 201.24ms      |    No |
+| Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  | Env |
+| ------------- |:-------------:| -----:|----------:|
+| 637 x 371     |  2.469 ms     | Yes | VS Studio 2015/2019 Release mode |
+| 637 x 371     |  6.675 ms     |   No |VS Studio 2015/2019 Release mode |
+| 3840 x 2160   |  83.13 ms   |   Yes |VS Studio 2015/2019 Release mode |
+| 3840 x 2160   | 201.24ms      |    No |VS Studio 2015/2019 Release mode |
+
+
+# Update #3 (in branch LUT) 6/28
+1. Added Makefile for ubuntu.
+2. Added argument support for selecting benchmark parameteres (smalle or large image, number of iterations)
+3. Edited `define marco` for gcc (version 7.4.0) compiler
+
+| Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  | Env |
+| ------------- |:-------------:| -----:|----------:|
+| 637 x 371     |   1.493 ms     | Yes | gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization   |
+| 637 x 371     |       |   No |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
+| 3840 x 2160   |  47.996 ms   |   Yes |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
+| 3840 x 2160   |      |    No |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
+
+
 
 
 **Working on:**
