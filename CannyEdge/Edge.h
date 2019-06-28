@@ -25,14 +25,13 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 	#ifdef _OPENMP
 		#include <omp.h>
 		#define numThreads 4		
+		#define activateThreshold 10000			
+
 		#ifdef __GNUC__
-			#define OMP_FOR(n)  _Pragma("omp parallel for if (n>300000)")
+
 		#elif _MSC_VER
 			#define OMP_FOR(n)  __pragma(omp parallel for if (n>100) num_threads(numThreads)) // Ability to toggle openmp according to size
 		#endif	
-	#else
-		#define omp_get_thread_num() 0
-		#define OMP_FOR(n)
 	#endif // _OPENMP
 
 
@@ -150,8 +149,8 @@ private:
 		);
 #else
 		
-		OMP_FOR(this->size) // Automatically ignored if no openmp support
-		for (int i = 0; i < this->rows; i++) 
+#pragma omp parallel for if (this->size > activateThreshold) num_threads(numThreads)
+		for (int i = 0; i < this->rows; i++)
 		{
 			const src1_type* gx = src1.ptr<src1_type>(i);
 			const src2_type* gy = src2.ptr<src2_type>(i);
@@ -230,7 +229,8 @@ private:
 				);
 
 #else
-		OMP_FOR(this->size) // Automatically ignored if no openmp support
+
+#pragma omp parallel for if (this->size > activateThreshold) num_threads(numThreads)
 		for (int i = 0; i < this->rows; i++) // Looping is faster than std::transform on VS 2019 & 2015
 		{  
 			const src1_type*  gx = src1.ptr<src1_type>(i);

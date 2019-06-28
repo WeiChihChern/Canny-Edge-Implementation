@@ -9,15 +9,14 @@ using namespace cv;
 #ifdef _OPENMP
 	#include <omp.h>
 	#define numThreads 4		
+	#define activateThreshold 10000			
 
 	#ifdef __GNUC__
-		#define OMP_FOR(n)  _Pragma("omp parallel for if (n>300000)")
+
 	#elif _MSC_VER
 		#define OMP_FOR(n)  __pragma(omp parallel for if (n>100) num_threads(numThreads)) 
 	#endif	
-#else
-	#define omp_get_thread_num() 0
-	#define OMP_FOR(n)
+
 #endif // _OPENMP
 
 
@@ -76,7 +75,7 @@ public:
 		int offset_row = k_rows / 2,
 			offset_col = k_cols / 2;
 
-		OMP_FOR( (src_rows - offset_row) * (src_cols - offset_col) ) // Automatically ignored if no openmp support
+#pragma omp parallel for if (src_rows*src_cols > 10) num_threads(numThreads)
 		for (int i = offset_row; i < src_rows - offset_row; i++) { // Start looping process
 			dst_type* dst_ptr = dst.ptr<dst_type>(i);
 
@@ -139,13 +138,10 @@ public:
 			src_cols = src.cols;
 
 		int offset_row = k_size / 2;
-		int k_idx = -offset_row;
 
 
-		OMP_FOR((src_rows - offset_row) * (src_cols - offset_col)) // Automatically ignored if no openmp support
+#pragma omp parallel for if (src_rows*src_cols > activateThreshold) num_threads(numThreads)
 		for (int i = offset_row; i < (src.rows - offset_row); i++) { // Start looping
-
-
 			for (int j = 0; j < src_cols; j++) {
 				const src_type* src_ptr = src.ptr<src_type>(i) + j;
 				      dst_type* dst_ptr = dst.ptr<dst_type>(i) + j;
@@ -206,9 +202,8 @@ public:
 			src_cols = src.cols;
 
 		int offset_col = k_size / 2;
-		int k_idx = -offset_col;
 
-		OMP_FOR( src_rows * (src_cols - offset_col) ) // Automatically ignored if no openmp support
+#pragma omp parallel for if (src_rows*src_cols > activateThreshold) num_threads(numThreads)		 
 		for (int i = 0; i < src_rows; i++) {
 			const src_type* src_ptr = src.ptr<src_type>(i);
 			      dst_type* dst_ptr = dst.ptr<dst_type>(i);
@@ -272,11 +267,10 @@ public:
 		int k_size = kernel.size();
 
 		int offset_col = k_size / 2;
-		int k_idx = -offset_col;
 		int rows = src.rows;
 		int cols = src.cols;
 
-		OMP_FOR( rows*cols) // Automatically ignored if no openmp support
+#pragma omp parallel for if (rows*cols > activateThreshold) num_threads(numThreads)
 		for (int i = 0; i < rows; i++) {
 			const src_type* src_ptr = src.ptr<src_type>(i);
 				  dst_type* dst_ptr = dst.ptr<dst_type>(i);
@@ -326,12 +320,11 @@ public:
 		int k_size = kernel.size();
 
 		int offset_row = k_size / 2;
-		int k_idx = -offset_row;
 		int rows = src.rows;
 		int cols = src.cols;
 
-		OMP_FOR(rows * cols) // Automatically ignored if no openmp support
-			for (int i = offset_row; i < (rows - offset_row); i++) { // Start looping
+#pragma omp parallel for if (rows*cols > activateThreshold) num_threads(numThreads)
+		for (int i = offset_row; i < (rows - offset_row); i++) { // Start looping
 				const src_type* src_ptr = src.ptr<src_type>(i);
 				      dst_type* dst_ptr = dst.ptr<dst_type>(i);
 				const kernel_type*  val = &kernel[0];

@@ -123,7 +123,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 	if(this->suppressed.empty()) this->suppressed = Mat (this->rows, this->cols, CV_8UC1, Scalar(0));
 
 
-	OMP_FOR(this->size) // Automatically ignored if no openmp support
+#pragma omp parallel for if (this->size > activateThreshold) num_threads(numThreads)
 	for (int i = 1; i < this->rows-1; i++) {
 		      uchar* dst_ptr = this->suppressed.ptr<uchar>(i);
 		      uchar* mag_ptr = magnitude.ptr<uchar>(i);
@@ -257,8 +257,8 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 #else
 	
 
-	OMP_FOR(this->size) // Automatically ignored if no openmp support
-	for (int i = 0; i < this->rows; i++) 
+#pragma omp parallel for if (this->size > activateThreshold) num_threads(numThreads)
+	for (int i = 0; i < this->rows; i++)
 	{
 		uchar* src_ptr = src.ptr<uchar>(i);
 		for (int j = 0; j < this->cols; j++) 
@@ -284,8 +284,8 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	// 255 intensity value. Otherwise, suppress it to 0
 	Mat dst(this->rows, this->cols, CV_8UC1, Scalar(0));
 	
-	OMP_FOR(this->size) // Automatically ignored if no openmp support
-	for (int i = 1; i < this->rows-1; i++) 
+#pragma omp parallel for if (this->size > activateThreshold) num_threads(numThreads)
+	for (int i = 1; i < this->rows-1; i++)
 	{
 		uchar* neighbor_result    = dst.ptr<uchar>(i);
 		uchar* double_thresholded = src.ptr<uchar>(i);
