@@ -9,27 +9,27 @@ Performance (CPU: 8700k at 4.4GHz):
 
 | Input size    |  Time (ms) (Avg. of 1000 runs)    | OpenMP Enable?  |
 | ------------- |:-------------:| -----:|
-| 637 x 371     |  3.647 ms     | Yes |
-| 637 x 371     |  11.39 ms     |   No |
-| 3840 x 2160   |  106.775 ms     |   Yes |
-| 3840 x 2160   | 304.65ms      |    No |
+| 637 x 371     | ~3.647 ms~     | Yes |
+| 637 x 371     |  ~11.39 ms~     |   No |
+| 3840 x 2160   |  ~106.775 ms~     |   Yes |
+| 3840 x 2160   | ~304.65ms~      |    No |
 
-## Update #2 (in branch LUT):
+## Update #2 (in branch LUT): 
 
 Done some optimizations in LUT, and added a fast atan approximation function 
 
 | Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  | Env |
 | ------------- |:-------------:| -----:|----------:|
-| 637 x 371     |  2.469 ms     | Yes | VS Studio 2015/2019 Release mode |
-| 637 x 371     |  6.675 ms     |   No |VS Studio 2015/2019 Release mode |
-| 3840 x 2160   |  83.13 ms   |   Yes |VS Studio 2015/2019 Release mode |
-| 3840 x 2160   | 201.24ms      |    No |VS Studio 2015/2019 Release mode |
+| 637 x 371     |  ~2.469 ms~     | Yes | VS Studio 2015/2019 Release mode |
+| 637 x 371     |  ~6.675 ms~     |   No |VS Studio 2015/2019 Release mode |
+| 3840 x 2160   |  ~83.13 ms~   |   Yes |VS Studio 2015/2019 Release mode |
+| 3840 x 2160   | ~201.24ms~      |    No |VS Studio 2015/2019 Release mode |
 
 
 # Update #3 (in branch LUT) 6/28
 - Added Makefile (`make clean` supported) for ubuntu. Just `make` to compile.
 - Added argument support for selecting benchmark parameteres (smalle or large image, number of iterations)
-- Edited `define marco` for gcc (version 7.4.0) compiler
+- Edited `define marco` for gcc (version 7.4.0) compiler & microsoft's compiler
 - Provided a docker image: [docker pull wchern/dev:opencv410](https://cloud.docker.com/u/wchern/repository/docker/wchern/dev)
 
 | Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  | Env |
