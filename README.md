@@ -36,7 +36,7 @@ Done some optimizations in LUT, and added a fast atan approximation function
 | ------------- |:-------------:| -----:|----------:|
 | 637 x 371     |   1.493 ms     | Yes, 4 threads | gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization   |
 | 637 x 371     |       |   No |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
-| 3840 x 2160   |  46.927 ms   |   Yes, 4 threads |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
+| 3840 x 2160   |  43.927 ms   |   Yes, 4 threads |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
 | 3840 x 2160   |      |    No |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
 
 Parameter Usage: `./app_name -firstPara -secPara thirPara` </br>
