@@ -40,9 +40,9 @@ Done some optimizations in LUT, and added a fast atan approximation function
 | 3840 x 2160   |      |    No |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
 
 Parameter Usage: `./app_name -firstPara -secPara thirPara` </br>
--firstPara = valid inputs are `-small` or `-large` </br>
--secPara = valid input is `-iter` </br>
--thirPara = valid input is any `positve integer` number for `iteration` </br>
+- -firstPara = valid inputs are `-small` or `-large` </br>
+- -secPara = valid input is `-iter` </br>
+- -thirPara = valid input is any `positve integer` number for `iteration` </br>
 
 ![1](https://user-images.githubusercontent.com/40074617/60336360-b3c93280-99d2-11e9-92cc-212a8ee19e89.PNG)
 
