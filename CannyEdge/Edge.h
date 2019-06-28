@@ -25,7 +25,7 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 	#ifdef _OPENMP
 		#include <omp.h>
 		#define numThreads 4		
-		#define activateThreshold 10000			
+		#define activateThreshold 180000			
 	#endif // _OPENMP
 
 
@@ -141,13 +141,15 @@ private:
 			}
 		);
 #else
+
 		
-#pragma omp parallel for if (this->size > activateThreshold) num_threads(numThreads)
+		#pragma omp parallel for if (this->size > activateThreshold) num_threads(numThreads)
 		for (int i = 0; i < this->rows; i++)
 		{
 			const src1_type* gx = src1.ptr<src1_type>(i);
 			const src2_type* gy = src2.ptr<src2_type>(i);
 			float* dst = this->magnitude.ptr<float>(i);
+
 
 			for (int j = 0; j < this->cols; j++) 
 			{ 

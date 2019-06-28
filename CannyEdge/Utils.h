@@ -9,7 +9,7 @@ using namespace cv;
 #ifdef _OPENMP
 	#include <omp.h>
 	#define numThreads 4		
-	#define activateThreshold 10000			
+	#define UTILS_activateThreshold 180000	
 #endif // _OPENMP
 
 
@@ -68,7 +68,7 @@ public:
 		int offset_row = k_rows / 2,
 			offset_col = k_cols / 2;
 
-#pragma omp parallel for if (src_rows*src_cols > 10) num_threads(numThreads)
+#pragma omp parallel for if (src_rows*src_cols > UTILS_activateThreshold) num_threads(numThreads)
 		for (int i = offset_row; i < src_rows - offset_row; i++) { // Start looping process
 			dst_type* dst_ptr = dst.ptr<dst_type>(i);
 
@@ -133,7 +133,7 @@ public:
 		int offset_row = k_size / 2;
 
 
-#pragma omp parallel for if (src_rows*src_cols > activateThreshold) num_threads(numThreads)
+#pragma omp parallel for if (src_rows*src_cols > UTILS_activateThreshold) num_threads(numThreads)
 		for (int i = offset_row; i < (src.rows - offset_row); i++) { // Start looping
 			for (int j = 0; j < src_cols; j++) {
 				const src_type* src_ptr = src.ptr<src_type>(i) + j;
@@ -196,7 +196,7 @@ public:
 
 		int offset_col = k_size / 2;
 
-#pragma omp parallel for if (src_rows*src_cols > activateThreshold) num_threads(numThreads)		 
+#pragma omp parallel for if (src_rows*src_cols > UTILS_activateThreshold) num_threads(numThreads)		 
 		for (int i = 0; i < src_rows; i++) {
 			const src_type* src_ptr = src.ptr<src_type>(i);
 			      dst_type* dst_ptr = dst.ptr<dst_type>(i);
@@ -263,18 +263,19 @@ public:
 		int rows = src.rows;
 		int cols = src.cols;
 
-#pragma omp parallel for if (rows*cols > activateThreshold) num_threads(numThreads)
+#pragma omp parallel for if (rows*cols > UTILS_activateThreshold) num_threads(numThreads)
 		for (int i = 0; i < rows; i++) {
-			const src_type* src_ptr = src.ptr<src_type>(i);
-				  dst_type* dst_ptr = dst.ptr<dst_type>(i);
+			const src_type* __restrict__ src_ptr = src.ptr<src_type>(i);
+				  dst_type* __restrict__ dst_ptr = dst.ptr<dst_type>(i);
 			const kernel_type* val = &kernel[0];
 
+#pragma omp simd
 			for (int j = offset_col; j < (cols - offset_col); j++) {
-
-				float sum  = *(src_ptr + j - 1)      *   *(val);
+				/*float sum  = *(src_ptr + j - 1)      *   *(val);
 				      sum += *(src_ptr + j)          *   *(val+1);
-			    *(dst_ptr+j) = sum + *(src_ptr+j+1)  *   *(val+2);
-				
+			    *(dst_ptr+j) = sum + *(src_ptr+j+1)  *   *(val+2);*/
+				*(dst_ptr + j) = *(src_ptr + j - 1) *  *(val)+*(src_ptr + j)  *  *(val + 1) + *(src_ptr + j + 1)  *   *(val + 2);
+
 			}
 		}
 
@@ -316,19 +317,23 @@ public:
 		int rows = src.rows;
 		int cols = src.cols;
 
-#pragma omp parallel for if (rows*cols > activateThreshold) num_threads(numThreads)
+#pragma omp parallel for if (rows*cols > UTILS_activateThreshold) num_threads(numThreads)
 		for (int i = offset_row; i < (rows - offset_row); i++) { // Start looping
-				const src_type* src_ptr = src.ptr<src_type>(i);
-				      dst_type* dst_ptr = dst.ptr<dst_type>(i);
+				const src_type* __restrict__ src_ptr = src.ptr<src_type>(i);
+				      dst_type* __restrict__ dst_ptr = dst.ptr<dst_type>(i);
 				const kernel_type*  val = &kernel[0];
 
+
+#pragma omp simd
 				for (int j = 0; j < cols; j++) {
-
-
-					float sum  = *(src_ptr + j - cols) * *(val);
+					/*float sum  = *(src_ptr + j - cols) * *(val);
 						  sum += *(src_ptr + j)        * *(val + 1);
-					*(dst_ptr + j) = sum + *(src_ptr + j + cols) * *(val + 2);
+					*(dst_ptr + j) = sum + *(src_ptr + j + cols) * *(val + 2);*/
+
+					*(dst_ptr + j) = *(src_ptr + j - cols) * *(val)+*(src_ptr + j)        * *(val + 1) + *(src_ptr + j + cols) * *(val + 2);
+
 				}
+				
 			}
 	};
 

@@ -266,10 +266,16 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 			uchar* val = (src_ptr + j);
 			if (*val >= high_thres)
 				* val = 255;
-			else if (*val < high_thres && *val >= low_thres)
-				*val = 125;
-			else
+			else if (*val < low_thres)
 				*val = 0;
+			else
+				*val = 125;
+			//if (src_ptr[j] >= high_thres)
+			//	src_ptr[j] = 255;
+			//else if (src_ptr[j] < low_thres)
+			//	src_ptr[j] = 0;
+			//else
+			//	src_ptr[j] = 125;
 		}
 	}
 
@@ -290,6 +296,7 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 		uchar* neighbor_result    = dst.ptr<uchar>(i);
 		uchar* double_thresholded = src.ptr<uchar>(i);
 			
+#pragma omp simd
 		for (int j = 1; j < this->cols-1; j++) 
 		{
 			uchar val = *(double_thresholded + j);
