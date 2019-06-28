@@ -27,9 +27,10 @@ Done some optimizations in LUT, and added a fast atan approximation function
 
 
 # Update #3 (in branch LUT) 6/28
-1. Added Makefile for ubuntu.
+1. Added Makefile (`make clean supported`) for ubuntu. Just `make` to compile.
 2. Added argument support for selecting benchmark parameteres (smalle or large image, number of iterations)
 3. Edited `define marco` for gcc (version 7.4.0) compiler
+4. Provided a docker image: `docker pull wchern/dev:opencv410`
 
 | Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  | Env |
 | ------------- |:-------------:| -----:|----------:|
@@ -38,7 +39,12 @@ Done some optimizations in LUT, and added a fast atan approximation function
 | 3840 x 2160   |  47.996 ms   |   Yes |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
 | 3840 x 2160   |      |    No |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
 
+Parameter Usage: `./app_name -firstPara -secPara thirPara` </br>
+-firstPara = valid inputs are `-small` or `-large` </br>
+-secPara = valid input is `-iter` </br>
+-thirPara = valid input is any `positve integer` number for `iteration` </br>
 
+![1](https://user-images.githubusercontent.com/40074617/60336360-b3c93280-99d2-11e9-92cc-212a8ee19e89.PNG)
 
 
 **Working on:**
