@@ -10,13 +10,6 @@ using namespace cv;
 	#include <omp.h>
 	#define numThreads 4		
 	#define activateThreshold 10000			
-
-	#ifdef __GNUC__
-
-	#elif _MSC_VER
-		#define OMP_FOR(n)  __pragma(omp parallel for if (n>100) num_threads(numThreads)) 
-	#endif	
-
 #endif // _OPENMP
 
 

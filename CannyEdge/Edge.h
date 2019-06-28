@@ -26,18 +26,11 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 		#include <omp.h>
 		#define numThreads 4		
 		#define activateThreshold 10000			
-
-		#ifdef __GNUC__
-
-		#elif _MSC_VER
-			#define OMP_FOR(n)  __pragma(omp parallel for if (n>100) num_threads(numThreads)) // Ability to toggle openmp according to size
-		#endif	
 	#endif // _OPENMP
 
 
 
 #else // Debug
-	#define OMP_FOR(n)
 	#define USE_SIMPLE_LOOP 
 
 

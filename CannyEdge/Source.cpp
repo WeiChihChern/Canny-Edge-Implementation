@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
 
 
 	bool _big = false;
-	if (strcmp(argv[1], "-large") == 0)
+	if (argv[1] != NULL && strcmp(argv[1], "-large") == 0)
 	{
 		_big = true;
 		cout << "Using Large image (4K) for benchmark!\n";
@@ -34,10 +34,14 @@ int main(int argc, char* argv[]) {
 		cout << "Using small image (637 x 371) for benchmark!\n";
 	}
 
-	if (strcmp(argv[2], "-iter") == 0)
+	if (argv[2] != NULL && strcmp(argv[2], "-iter") == 0)
 	{
 		iterations = atoi(argv[3]);
 		cout << "Iteration set to: " << iterations << "\n";
+	}
+	else
+	{
+		cout << "Iteration using default: " << iterations << "\n";
 	}
 
 
