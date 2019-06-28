@@ -1,5 +1,5 @@
 # Canny-Edge-Implementation
-#### (My own implementation on Canny Edge without any acceleration library)
+#### (My own implementation on Canny Edge)
 
 In Edge.h, there are two class member functions to do canny edge detection: *cannyEdge() & cannyEdge2()*
 
@@ -14,7 +14,7 @@ Performance (CPU: 8700k at 4.4GHz):
 | 3840 x 2160   |  106.775 ms     |   Yes |
 | 3840 x 2160   | 304.65ms      |    No |
 
-# Update #2 (in branch LUT):
+## Update #2 (in branch LUT):
 
 Done some optimizations in LUT, and added a fast atan approximation function 
 
