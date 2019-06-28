@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
 
 
 	bool _big = false;
-	if (argv[1] != NULL && strcmp(argv[1], "-large") == 0)
+	if (argc > 1 && strcmp(argv[1], "-large") == 0)
 	{
 		_big = true;
 		cout << "Using Large image (4K) for benchmark!\n";
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 		cout << "Using small image (637 x 371) for benchmark!\n";
 	}
 
-	if (argv[2] != NULL && strcmp(argv[2], "-iter") == 0)
+	if (argc > 3 && strcmp(argv[2], "-iter") == 0)
 	{
 		iterations = atoi(argv[3]);
 		cout << "Iteration set to: " << iterations << "\n";
@@ -72,8 +72,8 @@ int main(int argc, char* argv[]) {
 	cout << "My canny edge on small image: " << timer.elapsedMilliseconds() / (double)iterations << "ms (avg of " 
 		<< to_string(iterations) << " runs)\n";
 
-	//imshow("My canny edge", result);
-	//waitKey(10);
+	imshow("My canny edge", result);
+	waitKey(10);
 
 
 
