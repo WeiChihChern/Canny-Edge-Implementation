@@ -1,5 +1,12 @@
 CC = g++ 
-CFLAGS = -std=c++11 -Wall -pthread -fopenmp -O3 -g -mavx2 #-fopt-info-all
+CFLAGS = -std=c++11 -Wall -pthread -O2 -g -mavx2 -fopt-info-vec-optimized
+
+DEBUG ?= 0
+ifeq ($(DEBUG), 0)
+CFLAGS += -fopenmp
+endif
+
+
 
 SRCS = $(wildcard ./*.cpp)
 PROG = cannyExec

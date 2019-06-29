@@ -66,6 +66,9 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 	this->cols = src.cols;
 	this->size = this->rows * this->cols;
 
+	omp_set_num_threads(threadControl(this->size));
+
+
 
 	Mat gx(src.rows, src.cols, CV_16SC1); // Short type
 	this->conv2_h_sobel<uchar, short>(       src, gx, this->sobel_one);
@@ -123,12 +126,15 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 	if(this->suppressed.empty()) this->suppressed = Mat (this->rows, this->cols, CV_8UC1, Scalar(0));
 
 
-#pragma omp parallel for if (this->size > activateThreshold) num_threads(numThreads)
+#pragma omp parallel for 
 	for (int i = 1; i < this->rows-1; i++) {
 		      uchar* dst_ptr = this->suppressed.ptr<uchar>(i);
 		      uchar* mag_ptr = magnitude.ptr<uchar>(i);
 		const schar* gra_ptr = gradient.ptr<schar>(i);
-		
+
+#ifdef __GNUC__
+		#pragma omp simd
+#endif
 		for (int j = 1; j < this->cols-1; j++) {
 			short       theta = (*(gra_ptr+j) < 0) ? 180 + *(gra_ptr+j) : *(gra_ptr+j);
 			uchar cur_mag_val = *(mag_ptr+j);
@@ -257,10 +263,14 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 #else
 	
 
-#pragma omp parallel for if (this->size > activateThreshold) num_threads(numThreads)
+#pragma omp parallel for 
 	for (int i = 0; i < this->rows; i++)
 	{
 		uchar* src_ptr = src.ptr<uchar>(i);
+
+#ifdef __GNUC__
+		#pragma omp simd // for -O2 optimization
+#endif		
 		for (int j = 0; j < this->cols; j++) 
 		{
 			uchar* val = (src_ptr + j);
@@ -290,13 +300,15 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	// 255 intensity value. Otherwise, suppress it to 0
 	Mat dst(this->rows, this->cols, CV_8UC1, Scalar(0));
 	
-#pragma omp parallel for if (this->size > activateThreshold) num_threads(numThreads)
+#pragma omp parallel for
 	for (int i = 1; i < this->rows-1; i++)
 	{
 		uchar* neighbor_result    = dst.ptr<uchar>(i);
 		uchar* double_thresholded = src.ptr<uchar>(i);
 			
-#pragma omp simd
+#ifdef __GNUC__
+		#pragma omp simd // for -O2 optimization
+#endif	
 		for (int j = 1; j < this->cols-1; j++) 
 		{
 			uchar val = *(double_thresholded + j);

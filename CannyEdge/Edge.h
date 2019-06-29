@@ -22,13 +22,6 @@ constexpr auto TO_THETA = 180 / PI;  // Turn atan(Gy/Gx) to theta
 	#define USE_SIMPLE_LOOP 
 
 
-	#ifdef _OPENMP
-		#include <omp.h>
-		#define numThreads 4		
-		#define activateThreshold 180000			
-	#endif // _OPENMP
-
-
 
 #else // Debug
 	#define USE_SIMPLE_LOOP 
@@ -143,14 +136,16 @@ private:
 #else
 
 		
-		#pragma omp parallel for if (this->size > activateThreshold) num_threads(numThreads)
+		#pragma omp parallel for 
 		for (int i = 0; i < this->rows; i++)
 		{
 			const src1_type* gx = src1.ptr<src1_type>(i);
 			const src2_type* gy = src2.ptr<src2_type>(i);
 			float* dst = this->magnitude.ptr<float>(i);
 
-
+#ifdef __GNUC__
+			#pragma omp simd
+#endif		
 			for (int j = 0; j < this->cols; j++) 
 			{ 
 				float gyy = *(gy+j);
@@ -225,14 +220,16 @@ private:
 
 #else
 
-#pragma omp parallel for if (this->size > activateThreshold) num_threads(numThreads)
+#pragma omp parallel for 
 		for (int i = 0; i < this->rows; i++) // Looping is faster than std::transform on VS 2019 & 2015
 		{  
 			const src1_type*  gx = src1.ptr<src1_type>(i);
 			const src2_type*  gy = src2.ptr<src2_type>(i);
 			          schar* dst = this->gradient.ptr<schar>(i);
 
-			// Two if statement to improve speed, atan() is expensive
+#ifdef __GNUC__
+		#pragma omp simd
+#endif
 	    	for (int j = 0; j < this->cols; j++)
 			{
 				double gyy = *(gy + j);

@@ -72,8 +72,8 @@ int main(int argc, char* argv[]) {
 	cout << "My canny edge on small image: " << timer.elapsedMilliseconds() / (double)iterations << "ms (avg of " 
 		<< to_string(iterations) << " runs)\n";
 
-	//imshow("My canny edge", result);
-	//waitKey(10);
+	imshow("My canny edge", result);
+	waitKey(10);
 
 
 
