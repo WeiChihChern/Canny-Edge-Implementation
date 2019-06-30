@@ -87,8 +87,8 @@ int main(int argc, char* argv[]) {
 		<< "ms (avg of " << to_string(iterations) << " runs)\n";
 
 
-	//imshow("Opencv canny edge", result);
-	//waitKey(10);
+	imshow("Opencv canny edge", result);
+	waitKey(0);
 
 
 	return 0;

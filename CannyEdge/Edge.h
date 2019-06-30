@@ -278,9 +278,9 @@ private:
 				}
 				else 
 				{
-					dst[j] = this->FastArcTan(gyy / gxx);
+					//dst[j] = this->FastArcTan(gyy / gxx);
 					//*(dst + j) = (schar)(this->FastArcTan(gyy / gxx)  * TO_THETA);
-					//*(dst + j) = (schar)(std::atan((float)gyy / (float)gxx) * TO_THETA);
+					*(dst + j) = (schar)(std::atan((float)gyy / (float)gxx) * TO_THETA);
 					//*(dst + j) = (schar)(ApproxAtan( (float)gyy / (float)gxx )  * TO_THETA);
 				}
 #ifdef DEBUG_SHOW_GRADIENT_RESULT

@@ -137,7 +137,7 @@ void Edge::nonMaxSuppresion(const Mat &magnitude, const Mat &gradient, float hig
 	uchar cur_mag_val;
 
 	#pragma omp parallel for 
-	for (size_t i = 1; i < this->rows-1; ++i) {
+	for (size_t i = 2; i < this->rows-2; ++i) {
 		dst_ptr = this->suppressed.ptr<uchar>(i);
 		mag_ptr = magnitude.ptr<uchar>(i);
 		gra_ptr = gradient.ptr<schar>(i);
@@ -145,7 +145,7 @@ void Edge::nonMaxSuppresion(const Mat &magnitude, const Mat &gradient, float hig
 #ifdef __GNUC__
 		#pragma omp simd
 #endif
-		for (size_t j = 1; j < this->cols-1; ++j) 
+		for (size_t j = 2; j < this->cols-2; ++j) 
 		{
 			      theta = (*(gra_ptr+j) < 0) ? 180 + *(gra_ptr+j) : *(gra_ptr+j);
 			cur_mag_val = *(mag_ptr+j);
