@@ -115,6 +115,24 @@ public:
 private: 
 
 
+		// Input params: 
+	//		Magnitdue should be in 8-bit uchar type
+	//		gradient should be in 8-bit schar type, storing -90 ~ 90 degrees
+	// Output:
+	//		Will save a uchar result to member variable 'suppressed'
+	void nonMaxSuppresion(Mat& magnitude, const Mat& gradient, float high_thres, float low_thres);
+	void new_nonMaxSuppression(Mat& magnitude, const Mat &gradient);
+
+
+	// Input params: 
+	//		'src' should be in 8-bit uchar type
+	// Output:
+	//		will do thresholding inplace in member variable 'suppressed'
+	Mat hysteresis_threshold(Mat& src);
+
+
+	inline double FastArcTan(double x);
+
 
 
 	// This function uses square root of the sum of the squares: ( G(x)^2 + G(y)^2 )^0.5
@@ -337,35 +355,7 @@ private:
 
 
 
-	// Input params: 
-	//		Magnitdue should be in 8-bit uchar type
-	//		gradient should be in 8-bit schar type, storing -90 ~ 90 degrees
-	// Output:
-	//		Will save a uchar result to member variable 'suppressed'
-	void nonMaxSuppresion(Mat& magnitude, const Mat& gradient, float high_thres, float low_thres);
-	void new_nonMaxSuppression(Mat& magnitude, const Mat &gradient);
 
-
-
-
-
-
-
-
-
-
-
-	// Input params: 
-	//		'src' should be in 8-bit uchar type
-	// Output:
-	//		will do thresholding inplace in member variable 'suppressed'
-	Mat hysteresis_threshold(Mat& src);
-
-
-
-
-
-	inline double FastArcTan(double x);
 	
 
 };
