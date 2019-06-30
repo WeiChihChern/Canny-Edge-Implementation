@@ -129,101 +129,50 @@ void Edge::nonMaxSuppresion(const Mat &magnitude, const Mat &gradient, float hig
 	// Both magnitude & gradient are in float type
 	if(this->suppressed.empty()) this->suppressed = Mat (this->rows, this->cols, CV_8UC1, Scalar(0)); //remove scalar 0 to optimize
 
+	uchar* dst_ptr;
+	const uchar* mag_ptr;
+	const schar* gra_ptr;
 
+	short theta;
+	uchar cur_mag_val;
 
 	#pragma omp parallel for 
 	for (size_t i = 1; i < this->rows-1; ++i) {
-		      uchar* dst_ptr = this->suppressed.ptr<uchar>(i);
-		const uchar* mag_ptr = magnitude.ptr<uchar>(i);
-		const schar* gra_ptr = gradient.ptr<schar>(i);
+		dst_ptr = this->suppressed.ptr<uchar>(i);
+		mag_ptr = magnitude.ptr<uchar>(i);
+		gra_ptr = gradient.ptr<schar>(i);
 
 #ifdef __GNUC__
 		#pragma omp simd
 #endif
-		for (size_t j = 1; j < this->cols-1; ++j) {
-			short       theta = (*(gra_ptr+j) < 0) ? 180 + *(gra_ptr+j) : *(gra_ptr+j);
-			uchar cur_mag_val = *(mag_ptr+j);
-
-#ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-			bool suppressed_to_zero = false;
-			cout << "( Theta = " << theta << " , Magnitude = " << (int)cur_mag_val << " )";
-#endif 
+		for (size_t j = 1; j < this->cols-1; ++j) 
+		{
+			      theta = (*(gra_ptr+j) < 0) ? 180 + *(gra_ptr+j) : *(gra_ptr+j);
+			cur_mag_val = *(mag_ptr+j);
 
 			if ( cur_mag_val > low_thres && cur_mag_val != 0 ) // Edge pixel
 			{ 
 				if (theta >= 67 && theta <= 112) 
 				{
 					// vertical direction
-					if ( cur_mag_val > *(mag_ptr + j - cols) && cur_mag_val >= *(mag_ptr + j + cols) ) {
+					if ( cur_mag_val > *(mag_ptr + j - cols) && cur_mag_val >= *(mag_ptr + j + cols) ) 
 						dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
-					} 
-#ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					else {
-						suppressed_to_zero = true;
-					}
-					cout << " -> [Check vertical : (j-cols = " << (int)mag_ptr[j - cols] << " , ";
-					cout << "j+cols = " << (int)mag_ptr[j + cols] << ") ";
-					cout << "Action -> ";
-					if (suppressed_to_zero)
-						cout << "[Suppressed to Zero]\n";
-					else
-						cout << "[Not suppressed]\n";		
-#endif
 				}
 				else if ((theta < 23 && theta >= 0) || (theta <= 180 && theta > 157)) 
 				{
 					// horizontal direction
-					if (cur_mag_val > *(mag_ptr + j - 1) && cur_mag_val >= *(mag_ptr + j + 1)) {
+					if (cur_mag_val > *(mag_ptr + j - 1) && cur_mag_val >= *(mag_ptr + j + 1)) 
 						dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
-					}
-#ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					else {
-						suppressed_to_zero = true;
-					}
-					cout << " -> [Check horizontal : (j-1 = " << (int)mag_ptr[j - 1] << " , ";
-					cout << "j+1 = " << (int)mag_ptr[j + 1] << ") ";
-					cout << "Action -> ";
-					if (suppressed_to_zero)
-						cout << "[Suppressed to Zero]\n";
-					else
-						cout << "[Not suppressed]\n";
-#endif
 				}
 				else  // bottom-left to top-right  or  bottom-right to top-left direction
 				{ 
 					int d = (theta > 90) ? 1 : -1;
-					if (cur_mag_val >= *(mag_ptr + j + cols - d) && cur_mag_val > *(mag_ptr + j - cols + d)) {
+					if (cur_mag_val >= *(mag_ptr + j + cols - d) && cur_mag_val > *(mag_ptr + j - cols + d)) 
 						dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
-					}
-#ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					else {
-						suppressed_to_zero = true;
-					}
-					if (d == 1) {
-						cout << " -> [Check bl-tr : (";
-						cout << "j+cols-1 = " << (int)mag_ptr[j + cols - 1] << " , ";
-						cout << "j-cols+1 = " << (int)mag_ptr[j - cols + 1] << ") ";
-					}
-					else {
-						cout << " -> [Check br-tl : (";
-						cout << "j+cols+1 = " << (int)mag_ptr[j + cols + 1] << " , ";
-						cout << "j-cols-1 = " << (int)mag_ptr[j - cols - 1] << ") ";
-					}
-					cout << "Action -> ";
-					if (suppressed_to_zero)
-						cout << "[Suppressed to Zero]\n";
-					else
-						cout << "[Not suppressed]\n";
-#endif
 				}
 			} 
 			else // Non edge pixel
-			{ 
 				dst_ptr[j] = 0;
-#ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-				cout << " -> [Mag == 0]" << endl;
-#endif
-			}
 		}
 	}
 
@@ -279,20 +228,22 @@ Mat Edge::hysteresis_threshold(const Mat& src) {
 
 	if (src.empty() || src.channels() == 3) { cout << "hysteresis_threshold() error!\n"; return Mat(0,0,CV_8UC1); }
 
+	uchar* dst_p;
+	const uchar* nonM_p;
+	Mat dst(this->rows, this->cols, CV_8UC1); 
 
 
 	// In nonMax(), not only find the max along the graident direction,
 	// but everything >= high_thres is set to 255, and everything < low_thres
 	// is set to zero. 
-	// Check the value between high_thres & lower_thres to see if there's any 
+	// Check the pixel value between high_thres & lower_thres to see if there's any 
 	// strong pixel in the 8-neighbor, and set itself to 255 if it does.
-	Mat dst(this->rows, this->cols, CV_8UC1); //Added scalar(0)
 	
 #pragma omp parallel for
 	for (size_t i = 1; i < this->rows-1; ++i)
 	{
-		      uchar* dst_p  = dst.ptr<uchar>(i); 
-		const uchar* nonM_p = src.ptr<uchar>(i); // non max result pointer
+		dst_p  = dst.ptr<uchar>(i); 
+		nonM_p = src.ptr<uchar>(i); // non max result pointer
 			
 #ifdef __GNUC__
 		#pragma omp simd // for -O2 optimization
@@ -312,11 +263,11 @@ Mat Edge::hysteresis_threshold(const Mat& src) {
 				{
 					dst_p[j] = 255;
 				}
-				else { // No strong pixel (=255) in 8 neighbors
+				else // No strong pixel (=255) in 8 neighbors
+				{ 
 					dst_p[j] = 0;
 				}
-			}
-			
+			}		
 		}
 	}
 
