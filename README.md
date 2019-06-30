@@ -26,19 +26,20 @@ Done some optimizations in LUT, and added a fast atan approximation function
 | 3840 x 2160   | ~201.24ms~      |    No |VS Studio 2015/2019 Release mode |
 
 
-# Update #3 (in branch LUT) ~6/28~ 6/29
+# Update #5 (in branch LUT) ~6/28~ ~6/29~ 6/30
 - Added Makefile (`make clean` supported) for ubuntu. Just `make` to compile.
 - Added argument support for selecting benchmark parameteres (smalle or large image, number of iterations)
 - Edited `define marco` for gcc (version 7.4.0) compiler & microsoft's compiler (SIMD vectorization available on g++)
 - Provided a docker image: [docker pull wchern/dev:opencv410](https://cloud.docker.com/u/wchern/repository/docker/wchern/dev)
 - Added thread control function to select number of threads
 - convolution process is now vectorized
+- optimized nonMaxSuppression() & hysteresis_threshold()
 
 | Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  | Env |
 | ------------- |:-------------:| -----:|----------:|
-| 637 x 371     |   1.264 ms     | Yes, 4 threads | gcc version 7.4.0, ubuntu 18.04 (docker), -O2 optimization, omp simd   |
+| 637 x 371     |   0.794 ms     | Yes, 4 threads | gcc version 7.4.0, ubuntu 18.04 (docker), -O2 optimization, omp simd   |
 | 637 x 371     |       |   No |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
-| 3840 x 2160   |  36.873 ms   |   Yes, 8 threads |gcc version 7.4.0, ubuntu 18.04 (docker), -O2 optimization, omp simd |
+| 3840 x 2160   |  27.97 ms   |   Yes, 8 threads |gcc version 7.4.0, ubuntu 18.04 (docker), -O2 optimization, omp simd |
 | 3840 x 2160   |      |    No |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
 
 Parameter Usage: `./app_name -firstPara -secPara thirPara` </br>
