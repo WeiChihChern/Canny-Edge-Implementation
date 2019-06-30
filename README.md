@@ -11,10 +11,10 @@ In Edge.h, there are two class member functions to do canny edge detection: *can
 - Added argument support for selecting benchmark parameteres (smalle or large image, number of iterations, instructions below)
 - Edited `define marco` for gcc (version 7.4.0) compiler & microsoft's compiler (SIMD vectorization available on g++)
 - Factorized a lot of codes
-- Removed atan() & sqrt(gx^2 + gy^2) for speed boost
-- Added thread control function to select number of threads according to image size
+- Removed `atan()` & `sqrt(gx^2 + gy^2)` for speed boost
+- Added `thread control function` to select number of threads according to image size
 - vectorized some for-loops
-- optimized nonMaxSuppression() & hysteresis_threshold() to reduce if statements
+- optimized `nonMaxSuppression()` & `hysteresis_threshold()` to reduce if statements
 
 
 | Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  | Env |
