@@ -335,6 +335,49 @@ public:
 
 
 
+
+	// Make the edge pixels to zero (not the edge detection's edge)
+	// Edge pixles referring here is the pixels in first row and col, 
+	// and in last row and col
+	template <typename inputType>
+	void edge2zero(Mat &src)
+	{
+		int r = src.rows,
+			c = src.cols;
+
+		inputType *src_f   = src.ptr<inputType>(0);          // first row
+		inputType *src_l   = src.ptr<inputType>(src.rows-1); // last row
+		inputType *src_f_l = src.ptr<inputType>(0) + c - 1 ; // first row last element
+#ifdef __GNUC__
+		#pragma omp simd // for -O2 optimization
+#endif		
+		for (int j = 0; j < c; j++) // vectorized confirm
+		{
+			src_f[j] = 0;
+			src_l[j] = 0;
+		}
+			
+#ifdef __GNUC__
+		#pragma omp simd // for -O2 optimization
+#endif		
+		for (int i = 0; i < r; i++) // vectorized confirm
+		{
+			src_f[i * c] = 0;
+			src_f_l[i*c] = 0;
+		}
+		
+	}
+
+
+
+
+
+
+
+
+
+
+#ifdef _OPENMP
 	// Prevent overhead for allcating threads
 	int threadControl(int size){
 		if(size >= 180000 && size < 1000000)
@@ -346,6 +389,12 @@ public:
 		else 
 			return (maxThreads >= 2) ? 2 : maxThreads;
 	}
+#else
+	int threadControl(int size) {
+		return 1;
+	}
+
+#endif
 
 };
 

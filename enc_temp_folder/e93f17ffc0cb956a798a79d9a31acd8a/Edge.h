@@ -155,7 +155,6 @@ private:
 				// *(dst+j) = std::sqrt(gyy * gyy + gxx * gxx);
 				float gyy = gy[j];
 				float gxx = gx[j];
-				// std:abs() is for gcc compiler to make sure its positive
 				dst[j] = std::sqrt(std::abs(gyy*gyy + gxx*gxx));
 			}
 		}
