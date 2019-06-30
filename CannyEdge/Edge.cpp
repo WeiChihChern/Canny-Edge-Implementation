@@ -24,33 +24,31 @@ Edge::~Edge()
 
 
 
-void Edge::CannyEdge(Mat& src, Mat &dst, float high_thres, float low_thres) {
+// void Edge::CannyEdge(Mat& src, Mat &dst, float high_thres, float low_thres) {
 
-	this->rows = src.rows;
-	this->cols = src.cols;
-	this->size = this->rows * this->cols;
+// 	this->rows = src.rows;
+// 	this->cols = src.cols;
+// 	this->size = this->rows * this->cols;
 
-	Mat copy1, copy2;
-	this->conv2<uchar, short>(src, copy1, sobel_horizontal);
-	this->conv2<uchar, short>(src, copy2, sobel_vertical);
+// 	Mat copy1, copy2;
+// 	this->conv2<uchar, short>(src, copy1, sobel_horizontal);
+// 	this->conv2<uchar, short>(src, copy2, sobel_vertical);
 
-	this->calculate_Magnitude<short,short>(copy1, copy2, true);
-	this->calculate_Gradients<short, short>(copy1, copy2);
+// 	this->calculate_Magnitude<short,short>(copy1, copy2, this->magnitude, true);
+// 	this->calculate_Gradients<short, short>(copy1, copy2, this->gradient);
 	
-	copy1.release();
-	copy2.release();
 
-	this->nonMaxSuppresion(magnitude, gradient, high_thres, low_thres);
 
-	magnitude.release();
-	gradient.release();
+// 	this->nonMaxSuppresion(magnitude, gradient, copy1, copy2, high_thres, low_thres);
 
-	dst = this->hysteresis_threshold(suppressed);
 
-	suppressed.release();
 
-	return;
-}
+// 	dst = this->hysteresis_threshold(suppressed);
+
+// 	this->release();
+	
+// 	return;
+// }
 
 
 
@@ -69,6 +67,7 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 	this->cols = src.cols;
 	this->size = this->rows * this->cols;
 
+
 #ifdef _OPENMP
 	omp_set_num_threads(threadControl(this->size));
 #endif
@@ -83,6 +82,7 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 	this->conv2_h_sobel<uchar, short>(       src, gy, this->sobel_two);
 	this->conv2_v_sobel<short, short>(gy.clone(), gy, this->sobel_one);
 
+
 #ifdef DEBUG_IMSHOW_RESULT
 	Mat gy_show, gx_show;
 	gy.convertTo(gy_show, CV_8UC1);
@@ -95,20 +95,17 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 	
 
 	// Save magnitude result in unsigned char (uchar) 
-	this->calculate_Magnitude<short, short>(gx, gy, true);
+	this->calculate_Magnitude<short, short>(gx, gy, this->magnitude, true);
+
 	// Save gradient result in signed char (schar)
-	this->calculate_Gradients<short, short>(gx, gy);
+	this->calculate_Gradients<short, short>(gx, gy, this->gradient);
 
-	gx.release();
-	gy.release();
 
-	this->nonMaxSuppresion(this->magnitude, this->gradient, high_thres, low_thres);
+	this->nonMaxSuppresion(this->magnitude, this->gradient, gy, gx, this->suppressed, high_thres, low_thres);
 
 	dst = this->hysteresis_threshold(suppressed);
 
-	magnitude.release();
-	gradient.release();
-	suppressed.release();
+	this->release();
 
 	return;
 
@@ -125,49 +122,60 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 
 
 
-void Edge::nonMaxSuppresion(const Mat &magnitude, const Mat &gradient, float high_thres, float low_thres) {
+void Edge::nonMaxSuppresion(
+	const Mat &magnitude, const Mat &gradient, 
+	const Mat& gy, const Mat& gx, Mat &dst, 
+	float high_thres, float low_thres) 
+	{
+	
 	// Both magnitude & gradient are in float type
-	if(this->suppressed.empty()) this->suppressed = Mat (this->rows, this->cols, CV_8UC1, Scalar(0)); //remove scalar 0 to optimize
+	if(dst.empty()) dst = Mat (this->rows, this->cols, CV_8UC1, Scalar(0)); 
 
 	uchar* dst_ptr;
 	const uchar* mag_ptr;
 	const schar* gra_ptr;
 
 	short theta;
+	const short *gx_p, *gy_p;
 	uchar cur_mag_val;
+
+
 
 	#pragma omp parallel for 
 	for (size_t i = 2; i < this->rows-2; ++i) {
-		dst_ptr = this->suppressed.ptr<uchar>(i);
+		dst_ptr = dst.ptr<uchar>(i);
 		mag_ptr = magnitude.ptr<uchar>(i);
 		gra_ptr = gradient.ptr<schar>(i);
+		gx_p    = gx.ptr<short>(i);
+		gy_p    = gy.ptr<short>(i);
 
 #ifdef __GNUC__
 		#pragma omp simd
 #endif
 		for (size_t j = 2; j < this->cols-2; ++j) 
 		{
-			      theta = (*(gra_ptr+j) < 0) ? 180 + *(gra_ptr+j) : *(gra_ptr+j);
 			cur_mag_val = *(mag_ptr+j);
+			theta       = gra_ptr[j];
+		
 
 			if ( cur_mag_val > low_thres && cur_mag_val != 0 ) // Edge pixel
 			{ 
-				if (theta >= 67 && theta <= 112) 
+				if (theta == 90) 
 				{
 					// vertical direction
-					if ( cur_mag_val > *(mag_ptr + j - cols) && cur_mag_val >= *(mag_ptr + j + cols) ) 
+					if ( cur_mag_val > mag_ptr[j - cols] && cur_mag_val >= mag_ptr[j + cols] ) 
 						dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
 				}
-				else if ((theta < 23 && theta >= 0) || (theta <= 180 && theta > 157)) 
+				else if (theta == 0) 
 				{
 					// horizontal direction
-					if (cur_mag_val > *(mag_ptr + j - 1) && cur_mag_val >= *(mag_ptr + j + 1)) 
+					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val >= mag_ptr[j + 1]) 
 						dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
 				}
 				else  // bottom-left to top-right  or  bottom-right to top-left direction
 				{ 
-					int d = (theta > 90) ? 1 : -1;
-					if (cur_mag_val >= *(mag_ptr + j + cols - d) && cur_mag_val > *(mag_ptr + j - cols + d)) 
+					int d = (gy_p[j] * gx_p[j] < 0) ? 1 : -1;
+					if (cur_mag_val >= mag_ptr[j + cols - d] && cur_mag_val > mag_ptr[j - cols + d]) 
 						dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
 				}
 			} 
@@ -178,39 +186,12 @@ void Edge::nonMaxSuppresion(const Mat &magnitude, const Mat &gradient, float hig
 
 
 #ifdef DEBUG_IMSHOW_RESULT
-	imshow("Edge class's nonMaxSuppression() result in 8-bit (from float)", this->suppressed);
+	imshow("Non maximum suppression result", dst);
 	waitKey(10);
 #endif 
 
 	return;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void Edge::new_nonMaxSuppression(const Mat& magnitude, const Mat &gradient)
-{
-    const int TG22 = 13573;
-	if(this->suppressed.empty()) this->suppressed = Mat (this->rows, this->cols, CV_8UC1, Scalar(0));
-
-}
-
-
-
-
-
 
 
 
@@ -274,7 +255,7 @@ Mat Edge::hysteresis_threshold(const Mat& src) {
 	this->edge2zero<uchar>(dst);
 
 #ifdef DEBUG_IMSHOW_RESULT
-	imshow("Edge class's hysteresis_threshold() result in 8-bit (from float)", dst);
+	imshow("Hysteresis threshold result", dst);
 	waitKey(10);
 #endif 
 
@@ -285,10 +266,3 @@ Mat Edge::hysteresis_threshold(const Mat& src) {
 
 
 
-
-
-
-double Edge::FastArcTan(double x)
-{
-	return M_PI_4*x - x*(fabs(x) - 1)*(0.2447 + 0.0663*fabs(x));
-}

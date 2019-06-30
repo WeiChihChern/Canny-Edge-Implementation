@@ -348,6 +348,8 @@ public:
 		inputType *src_f   = src.ptr<inputType>(0);          // first row
 		inputType *src_l   = src.ptr<inputType>(src.rows-1); // last row
 		inputType *src_f_l = src.ptr<inputType>(0) + c - 1 ; // first row last element
+
+		
 #ifdef __GNUC__
 		#pragma omp simd // for -O2 optimization
 #endif		
@@ -367,6 +369,7 @@ public:
 		}
 		
 	}
+
 
 
 
