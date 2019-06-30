@@ -5,42 +5,24 @@ In Edge.h, there are two class member functions to do canny edge detection: *can
 
 *cannyEdge2()* is an optimized version of cannyEdge() in 2D convolution process, it separates the sobel kernel into two smaller kernels for faster convolution process and reduces one for-loop.
 
-Performance (CPU: 8700k at 4.4GHz): 
-
-| Input size    |  Time (ms) (Avg. of 1000 runs)    | OpenMP Enable?  |
-| ------------- |:-------------:| -----:|
-| 637 x 371     | ~3.647 ms~     | Yes |
-| 637 x 371     |  ~11.39 ms~     |   No |
-| 3840 x 2160   |  ~106.775 ms~     |   Yes |
-| 3840 x 2160   | ~304.65ms~      |    No |
-
-## Update #2 (in branch LUT): 
-
-Done some optimizations in LUT, and added a fast atan approximation function 
-
-| Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  | Env |
-| ------------- |:-------------:| -----:|----------:|
-| 637 x 371     |  ~2.469 ms~     | Yes | VS Studio 2015/2019 Release mode |
-| 637 x 371     |  ~6.675 ms~     |   No |VS Studio 2015/2019 Release mode |
-| 3840 x 2160   |  ~83.13 ms~   |   Yes |VS Studio 2015/2019 Release mode |
-| 3840 x 2160   | ~201.24ms~      |    No |VS Studio 2015/2019 Release mode |
-
-
-# Update #5 (in branch LUT) ~6/28~ ~6/29~ 6/30
-- Added Makefile (`make clean` supported) for ubuntu. Just `make` to compile.
-- Added argument support for selecting benchmark parameteres (smalle or large image, number of iterations)
-- Edited `define marco` for gcc (version 7.4.0) compiler & microsoft's compiler (SIMD vectorization available on g++)
+# Latest master 6/30
 - Provided a docker image: [docker pull wchern/dev:opencv410](https://cloud.docker.com/u/wchern/repository/docker/wchern/dev)
-- Added thread control function to select number of threads
-- convolution process is now vectorized
-- optimized nonMaxSuppression() & hysteresis_threshold()
+- Added Makefile (`make clean` supported) for ubuntu. Just `make` to compile.
+- Added argument support for selecting benchmark parameteres (smalle or large image, number of iterations, instructions below)
+- Edited `define marco` for gcc (version 7.4.0) compiler & microsoft's compiler (SIMD vectorization available on g++)
+- Factorized a lot of codes
+- Removed atan() & sqrt(gx^2 + gy^2) for speed boost
+- Added thread control function to select number of threads according to image size
+- vectorized some for-loops
+- optimized nonMaxSuppression() & hysteresis_threshold() to reduce if statements
+
 
 | Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  | Env |
 | ------------- |:-------------:| -----:|----------:|
-| 637 x 371     |   0.794 ms     | Yes, 4 threads | gcc version 7.4.0, ubuntu 18.04 (docker), -O2 optimization, omp simd   |
-| 637 x 371     |       |   No |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
-| 3840 x 2160   |  27.97 ms   |   Yes, 8 threads |gcc version 7.4.0, ubuntu 18.04 (docker), -O2 optimization, omp simd |
-| 3840 x 2160   |      |    No |gcc version 7.4.0, ubuntu 18.04 (docker), -O3 optimization |
+| 637 x 371     |   0.794 ms (before: 3.647 ms)     | Yes, 4 threads | gcc 7.4.0, ubuntu 18.04 (docker), -O2 optimization, omp simd   |
+| 3840 x 2160   |  25.137 ms (before: 106.775 ms)  |   Yes, 8 threads |gcc 7.4.0, ubuntu 18.04 (docker), -O2 optimization, omp simd |
+
+
 
 Parameter Usage: `./app_name -firstPara -secPara thirPara` </br>
 - -firstPara = valid inputs are `-small` or `-large` </br>
@@ -50,6 +32,4 @@ Parameter Usage: `./app_name -firstPara -secPara thirPara` </br>
 ![1](https://user-images.githubusercontent.com/40074617/60336360-b3c93280-99d2-11e9-92cc-212a8ee19e89.PNG)
 
 
-**Working on:**
-1. vectorize more
 
