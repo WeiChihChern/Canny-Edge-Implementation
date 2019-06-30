@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 		<< to_string(iterations) << " runs)\n";
 
 	imshow("My canny edge", result);
-	waitKey(10);
+	waitKey(0);
 
 
 
