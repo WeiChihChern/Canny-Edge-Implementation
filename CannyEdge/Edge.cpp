@@ -1,7 +1,11 @@
 #include "Edge.h"
 
 #include <algorithm>
+#define _USE_MATH_DEFINES // for C++
 #include <math.h>
+
+
+
 
 Edge::Edge()
 {
@@ -20,29 +24,31 @@ Edge::~Edge()
 
 
 
-void Edge::CannyEdge(Mat& src, Mat &dst, float high_thres, float low_thres) {
+// void Edge::CannyEdge(Mat& src, Mat &dst, float high_thres, float low_thres) {
 
-	Mat copy1, copy2;
-	this->conv2<uchar, short>(src, copy1, sobel_horizontal);
-	this->conv2<uchar, short>(src, copy2, sobel_vertical);
+// 	this->rows = src.rows;
+// 	this->cols = src.cols;
+// 	this->size = this->rows * this->cols;
 
-	this->calculate_Magnitude<short,short>(copy1, copy2, true);
-	this->calculate_Gradients<short, short>(copy1, copy2);
+// 	Mat copy1, copy2;
+// 	this->conv2<uchar, short>(src, copy1, sobel_horizontal);
+// 	this->conv2<uchar, short>(src, copy2, sobel_vertical);
+
+// 	this->calculate_Magnitude<short,short>(copy1, copy2, this->magnitude, true);
+// 	this->calculate_Gradients<short, short>(copy1, copy2, this->gradient);
 	
-	copy1.release();
-	copy2.release();
 
-	this->nonMaxSuppresion(magnitude, gradient);
 
-	magnitude.release();
-	gradient.release();
+// 	this->nonMaxSuppresion(magnitude, gradient, copy1, copy2, high_thres, low_thres);
 
-	dst = this->hysteresis_threshold(suppressed, high_thres, low_thres);
 
-	suppressed.release();
 
-	return;
-}
+// 	dst = this->hysteresis_threshold(suppressed);
+
+// 	this->release();
+	
+// 	return;
+// }
 
 
 
@@ -57,6 +63,16 @@ void Edge::CannyEdge(Mat& src, Mat &dst, float high_thres, float low_thres) {
 
 void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 
+	this->rows = src.rows;
+	this->cols = src.cols;
+	this->size = this->rows * this->cols;
+
+
+#ifdef _OPENMP
+	omp_set_num_threads(threadControl(this->size));
+#endif
+
+
 	Mat gx(src.rows, src.cols, CV_16SC1); // Short type
 	this->conv2_h_sobel<uchar, short>(       src, gx, this->sobel_one);
 	this->conv2_v_sobel<short, short>(gx.clone(), gx, this->sobel_two);
@@ -65,6 +81,7 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 	Mat gy(src.rows, src.cols, CV_16SC1); // Short type
 	this->conv2_h_sobel<uchar, short>(       src, gy, this->sobel_two);
 	this->conv2_v_sobel<short, short>(gy.clone(), gy, this->sobel_one);
+
 
 #ifdef DEBUG_IMSHOW_RESULT
 	Mat gy_show, gx_show;
@@ -78,20 +95,17 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 	
 
 	// Save magnitude result in unsigned char (uchar) 
-	this->calculate_Magnitude<short, short>(gx, gy, true);
+	this->calculate_Magnitude<short, short>(gx, gy, this->magnitude, true);
+
 	// Save gradient result in signed char (schar)
-	this->calculate_Gradients<short, short>(gx, gy);
+	this->calculate_Gradients<short, short>(gx, gy, this->gradient);
 
-	gx.release();
-	gy.release();
 
-	this->nonMaxSuppresion(this->magnitude, this->gradient);
+	this->nonMaxSuppresion(this->magnitude, this->gradient, gy, gx, this->suppressed, high_thres, low_thres);
 
-	dst = this->hysteresis_threshold(suppressed, high_thres, low_thres);
+	dst = this->hysteresis_threshold(suppressed);
 
-	magnitude.release();
-	gradient.release();
-	suppressed.release();
+	this->release();
 
 	return;
 
@@ -108,109 +122,72 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 
 
 
-void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
+void Edge::nonMaxSuppresion(
+	const Mat &magnitude, const Mat &gradient, 
+	const Mat& gy, const Mat& gx, Mat &dst, 
+	float high_thres, float low_thres) 
+	{
+	
 	// Both magnitude & gradient are in float type
-	if(this->suppressed.empty()) this->suppressed = Mat (magnitude.rows, magnitude.cols, CV_8UC1, Scalar(0));
-	int rows = magnitude.rows,
-	    cols = magnitude.cols;
+	if(dst.empty()) dst = Mat (this->rows, this->cols, CV_8UC1, Scalar(0)); 
 
-	OMP_FOR(rows * cols) // Automatically ignored if no openmp support
-	for (int i = 1; i < rows-1; i++) {
-		      uchar* dst_ptr = this->suppressed.ptr<uchar>(i);
-		      uchar* mag_ptr = magnitude.ptr<uchar>(i);
-		const schar* gra_ptr = gradient.ptr<schar>(i);
+	uchar* dst_ptr;
+	const uchar* mag_ptr;
+	const schar* gra_ptr;
+
+	short theta;
+	const short *gx_p, *gy_p;
+	uchar cur_mag_val;
+
+
+
+	#pragma omp parallel for 
+	for (size_t i = 2; i < this->rows-2; ++i) {
+		dst_ptr = dst.ptr<uchar>(i);
+		mag_ptr = magnitude.ptr<uchar>(i);
+		gra_ptr = gradient.ptr<schar>(i);
+		gx_p    = gx.ptr<short>(i);
+		gy_p    = gy.ptr<short>(i);
+
+#ifdef __GNUC__
+		#pragma omp simd
+#endif
+		for (size_t j = 2; j < this->cols-2; ++j) 
+		{
+			cur_mag_val = *(mag_ptr+j);
+			theta       = gra_ptr[j];
 		
-		for (int j = 1; j < cols-1; j++) {
-			short       theta = (gra_ptr[j] < 0) ? 180+ gra_ptr[j] : gra_ptr[j];
-			uchar cur_mag_val = mag_ptr[j];
 
-#ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-			bool suppressed_to_zero = false;
-			cout << "( Theta = " << theta << " , Magnitude = " << (int)cur_mag_val << " )";
-#endif 
-
-			if (cur_mag_val != 0) // Edge pixel
+			if ( cur_mag_val > low_thres && cur_mag_val != 0 ) // Edge pixel
 			{ 
-				if (theta >= 67 && theta <= 112) 
+				if (theta == 90) 
 				{
 					// vertical direction
-					if ( cur_mag_val > mag_ptr[j - cols] && cur_mag_val >= mag_ptr[j + cols] ) {
-						dst_ptr[j] = cur_mag_val;
-					} 
-#ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					else {
-						suppressed_to_zero = true;
-					}
-					cout << " -> [Check vertical : (j-cols = " << (int)mag_ptr[j - cols] << " , ";
-					cout << "j+cols = " << (int)mag_ptr[j + cols] << ") ";
-					cout << "Action -> ";
-					if (suppressed_to_zero)
-						cout << "[Suppressed to Zero]\n";
-					else
-						cout << "[Not suppressed]\n";		
-#endif
+					if ( cur_mag_val > mag_ptr[j - cols] && cur_mag_val >= mag_ptr[j + cols] ) 
+						dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
 				}
-				else if ((theta < 23 && theta >= 0) || (theta <= 180 && theta > 157)) 
+				else if (theta == 0) 
 				{
 					// horizontal direction
-					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val >= mag_ptr[j + 1]) {
-						dst_ptr[j] = cur_mag_val;
-					}
-#ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					else {
-						suppressed_to_zero = true;
-					}
-					cout << " -> [Check horizontal : (j-1 = " << (int)mag_ptr[j - 1] << " , ";
-					cout << "j+1 = " << (int)mag_ptr[j + 1] << ") ";
-					cout << "Action -> ";
-					if (suppressed_to_zero)
-						cout << "[Suppressed to Zero]\n";
-					else
-						cout << "[Not suppressed]\n";
-#endif
+					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val >= mag_ptr[j + 1]) 
+						dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
 				}
 				else  // bottom-left to top-right  or  bottom-right to top-left direction
 				{ 
-					int d = (theta > 90) ? 1 : -1;
-					if (cur_mag_val >= mag_ptr[j + cols - d] && cur_mag_val > mag_ptr[j - cols + d]) {
-						dst_ptr[j] = cur_mag_val;
-					}
-#ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-					else {
-						suppressed_to_zero = true;
-					}
-					if (d == 1) {
-						cout << " -> [Check bl-tr : (";
-						cout << "j+cols-1 = " << (int)mag_ptr[j + cols - 1] << " , ";
-						cout << "j-cols+1 = " << (int)mag_ptr[j - cols + 1] << ") ";
-					}
-					else {
-						cout << " -> [Check br-tl : (";
-						cout << "j+cols+1 = " << (int)mag_ptr[j + cols + 1] << " , ";
-						cout << "j-cols-1 = " << (int)mag_ptr[j - cols - 1] << ") ";
-					}
-					cout << "Action -> ";
-					if (suppressed_to_zero)
-						cout << "[Suppressed to Zero]\n";
-					else
-						cout << "[Not suppressed]\n";
-#endif
+					int d = (gy_p[j] * gx_p[j] < 0) ? 1 : -1;
+					if (cur_mag_val >= mag_ptr[j + cols - d] && cur_mag_val > mag_ptr[j - cols + d]) 
+						dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
 				}
 			} 
 			else // Non edge pixel
-			{ 
 				dst_ptr[j] = 0;
-#ifdef DEBUG_SHOW_NonMaxSuppress_THETA_and_DIRECTIONS
-				cout << " -> [Mag == 0]" << endl;
-#endif
-			}
 		}
 	}
 
 
 #ifdef DEBUG_IMSHOW_RESULT
-	imshow("Edge class's nonMaxSuppression() result in 8-bit (from float)", this->suppressed);
-	waitKey(0);
+	imshow("Non maximum suppression result", dst);
+	waitKey(10);
 #endif 
 
 	return;
@@ -228,138 +205,57 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient) {
 
 
 
-
-Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
+Mat Edge::hysteresis_threshold(const Mat& src) {
 
 	if (src.empty() || src.channels() == 3) { cout << "hysteresis_threshold() error!\n"; return Mat(0,0,CV_8UC1); }
 
-	int rows = src.rows,
-	    cols = src.cols;
+	uchar* dst_p;
+	const uchar* nonM_p;
+	Mat dst(this->rows, this->cols, CV_8UC1); 
 
-#ifndef USE_SIMPLE_LOOP
-	std::transform(src.begin<float>(), src.end<float>(), src.begin<float>(), 
-		[&high_thres, &low_thres] (const float &src_val) {
-			if (src_val >= high_thres) 
-				return 255; // Assign as strong edge pixel
-			else if (src_val < high_thres && src_val >= low_thres)
-				return 125; // Assign as potential strong edge pixel
-			else 
-				return 0;   // Suppressed to zero
-		});
 
-#else
+	// In nonMax(), not only find the max along the graident direction,
+	// but everything >= high_thres is set to 255, and everything < low_thres
+	// is set to zero. 
+	// Check the pixel value between high_thres & lower_thres to see if there's any 
+	// strong pixel in the 8-neighbor, and set itself to 255 if it does.
 	
-
-	OMP_FOR(rows * cols) // Automatically ignored if no openmp support
-	for (int i = 0; i < src.rows; i++) 
+#pragma omp parallel for
+	for (size_t i = 1; i < this->rows-1; ++i)
 	{
-		uchar* src_ptr = src.ptr<uchar>(i);
-		for (int j = 0; j < src.cols; j++) 
-		{
-			if (src_ptr[j] >= high_thres)
-				src_ptr[j] = 255;
-			else if (src_ptr[j] < high_thres && src_ptr[j] >= low_thres)
-				src_ptr[j] = 125;
-			else
-				src_ptr[j] = 0;
-		}
-	}
-
-#endif // !USE_SIMPLE_LOOP
-
-
-
-	// After thresholding, if pixel is assigned as 125,
-	// check that pixel's 8-neighbor to see if any strong
-	// pixel with intensity value of 255 exists. If so,
-	// that pixel can be assigned as a strong pixel with
-	// 255 intensity value. Otherwise, suppress it to 0
-	Mat dst(src.rows, src.cols, CV_8UC1, Scalar(0));
-	
-	OMP_FOR(rows * cols) // Automatically ignored if no openmp support
-	for (int i = 1; i < rows-1; i++) 
-	{
-		uchar* neighbor_result    = dst.ptr<uchar>(i);
-		uchar* double_thresholded = src.ptr<uchar>(i);
+		dst_p  = dst.ptr<uchar>(i); 
+		nonM_p = src.ptr<uchar>(i); // non max result pointer
 			
-		for (int j = 1; j < cols-1; j++) 
+#ifdef __GNUC__
+		#pragma omp simd // for -O2 optimization
+#endif	
+		for (size_t j = 1; j < this->cols-1; ++j) 
 		{
-			if (double_thresholded[j] == 0)        // No edge found
+			uchar val = nonM_p[j];
+			if(val == 0)
+				dst_p[j] = val;
+			else if (val == 255)
+				dst_p[j] = val;
+			else
 			{
-				neighbor_result[j] = 0;
-#ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
-				cout << "Not a edge pixel, no checking needed.\n";
-#endif 
-			}
-			else if (double_thresholded[j] == 125) // potential strong edge pixel
-			{
-				if (double_thresholded[j - 1] == 255) {
-					neighbor_result[j] = 255;
-#ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
-					cout << "Neighbor 255 is at: j - 1\n";
-#endif 
+				if (*(nonM_p + j - 1) == 255 || *(nonM_p + j + 1) == 255 || *(nonM_p+j - cols) == 255 || 
+				    *(nonM_p + j + cols) == 255 || *(nonM_p + j - cols - 1) == 255 || 
+					*(nonM_p + j - cols + 1) == 255 || *(nonM_p + j + cols + 1) == 255 || *(nonM_p + j + cols - 1) == 255) 
+				{
+					dst_p[j] = 255;
 				}
-				else if (double_thresholded[j + 1] == 255) {
-					neighbor_result[j] = 255;
-#ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
-					cout << "Neighbor 255 is at: j + 1\n";
-#endif 
+				else // No strong pixel (=255) in 8 neighbors
+				{ 
+					dst_p[j] = 0;
 				}
-				else if (double_thresholded[j - cols] == 255) {
-					neighbor_result[j] = 255;
-#ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
-					cout << "Neighbor 255 is at: j - cols\n";
-#endif 
-				}
-				else if (double_thresholded[j + cols] == 255) {
-					neighbor_result[j] = 255;
-#ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
-					cout << "Neighbor 255 is at: j + cols\n";
-#endif 
-				}
-				else if (double_thresholded[j - cols - 1] == 255) {
-					neighbor_result[j] = 255;
-#ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
-					cout << "Neighbor 255 is at: j - cols - 1\n";
-#endif 
-				}
-				else if (double_thresholded[j - cols + 1] == 255) {
-				neighbor_result[j] = 255;
-#ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
-				cout << "Neighbor 255 is at: j + cols + 1\n";
-#endif 
-				}
-				else if (double_thresholded[j + cols + 1] == 255) {
-					neighbor_result[j] = 255;
-#ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
-					cout << "Neighbor 255 is at: j + cols + 1\n";
-#endif 
-				}
-				else if (double_thresholded[j + cols - 1] == 255) {
-					neighbor_result[j] = 255;
-#ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
-					cout << "Neighbor 255 is at: j + cols - 1\n";
-#endif 
-				}
-				else { // No strong pixel (=255) in 8 neighbors
-					neighbor_result[j] = 0;
-				}
-
-			}
-			else  // Is a strong edge pixel
-			{
-				neighbor_result[j] = 255;
-#ifdef DEBUG_SHOW_HYSTERESIS_NEIGHBOR_RESULT
-				cout << "Strong edge pixel, no checking needed.\n";
-#endif 
-			}
+			}		
 		}
 	}
 
-
+	this->edge2zero<uchar>(dst);
 
 #ifdef DEBUG_IMSHOW_RESULT
-	imshow("Edge class's hysteresis_threshold() result in 8-bit (from float)", dst);
+	imshow("Hysteresis threshold result", dst);
 	waitKey(10);
 #endif 
 
@@ -367,3 +263,6 @@ Mat Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 
 	return dst;
 }
+
+
+
