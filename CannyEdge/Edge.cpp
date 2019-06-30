@@ -125,21 +125,22 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 
 
 
-void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient, float high_thres, float low_thres) {
+void Edge::nonMaxSuppresion(const Mat &magnitude, const Mat &gradient, float high_thres, float low_thres) {
 	// Both magnitude & gradient are in float type
 	if(this->suppressed.empty()) this->suppressed = Mat (this->rows, this->cols, CV_8UC1, Scalar(0)); //remove scalar 0 to optimize
 
 
+
 	#pragma omp parallel for 
-	for (int i = 1; i < this->rows-1; i++) {
+	for (size_t i = 1; i < this->rows-1; ++i) {
 		      uchar* dst_ptr = this->suppressed.ptr<uchar>(i);
-		      uchar* mag_ptr = magnitude.ptr<uchar>(i);
+		const uchar* mag_ptr = magnitude.ptr<uchar>(i);
 		const schar* gra_ptr = gradient.ptr<schar>(i);
 
 #ifdef __GNUC__
 		#pragma omp simd
 #endif
-		for (int j = 1; j < this->cols-1; j++) {
+		for (size_t j = 1; j < this->cols-1; ++j) {
 			short       theta = (*(gra_ptr+j) < 0) ? 180 + *(gra_ptr+j) : *(gra_ptr+j);
 			uchar cur_mag_val = *(mag_ptr+j);
 
@@ -250,7 +251,7 @@ void Edge::nonMaxSuppresion(Mat &magnitude, const Mat &gradient, float high_thre
 
 
 
-void Edge::new_nonMaxSuppression(Mat& magnitude, const Mat &gradient)
+void Edge::new_nonMaxSuppression(const Mat& magnitude, const Mat &gradient)
 {
     const int TG22 = 13573;
 	if(this->suppressed.empty()) this->suppressed = Mat (this->rows, this->cols, CV_8UC1, Scalar(0));
@@ -274,7 +275,7 @@ void Edge::new_nonMaxSuppression(Mat& magnitude, const Mat &gradient)
 
 
 
-Mat Edge::hysteresis_threshold(Mat& src) {
+Mat Edge::hysteresis_threshold(const Mat& src) {
 
 	if (src.empty() || src.channels() == 3) { cout << "hysteresis_threshold() error!\n"; return Mat(0,0,CV_8UC1); }
 
@@ -288,15 +289,15 @@ Mat Edge::hysteresis_threshold(Mat& src) {
 	Mat dst(this->rows, this->cols, CV_8UC1); //Added scalar(0)
 	
 #pragma omp parallel for
-	for (int i = 1; i < this->rows-1; i++)
+	for (size_t i = 1; i < this->rows-1; ++i)
 	{
-		uchar* dst_p  = dst.ptr<uchar>(i); 
-		uchar* nonM_p = src.ptr<uchar>(i); // non max result pointer
+		      uchar* dst_p  = dst.ptr<uchar>(i); 
+		const uchar* nonM_p = src.ptr<uchar>(i); // non max result pointer
 			
 #ifdef __GNUC__
 		#pragma omp simd // for -O2 optimization
 #endif	
-		for (int j = 1; j < this->cols-1; j++) 
+		for (size_t j = 1; j < this->cols-1; ++j) 
 		{
 			uchar val = nonM_p[j];
 			if(val == 0)

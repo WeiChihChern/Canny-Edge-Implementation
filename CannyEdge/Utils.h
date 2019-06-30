@@ -69,18 +69,18 @@ public:
 
 
 #pragma omp parallel for 
-		for (int i = offset_row; i < src_rows - offset_row; i++) { // Start looping process
+		for (size_t i = offset_row; i < src_rows - offset_row; i++) { // Start looping process
 			dst_type* dst_ptr = dst.ptr<dst_type>(i);
 
-			for (int j = offset_col; j < src_cols - offset_col; j++) {
+			for (size_t j = offset_col; j < src_cols - offset_col; j++) {
 
 				float sum = 0;
 
 				// Loop through each element in kernel with corresponding pixel value from src
-				for (int k = -offset_row; k < offset_row + 1; k++) {
+				for (size_t k = -offset_row; k < offset_row + 1; k++) {
 					const src_type* src_ptr = src.ptr<src_type>(i + k) + j;
 
-					for (int l = -offset_col; l < offset_col + 1; l++) {
+					for (size_t l = -offset_col; l < offset_col + 1; l++) {
 						sum += (src_ptr[l] * kernel[k + offset_row][l + offset_col]);
 					}
 				}
@@ -134,8 +134,8 @@ public:
 
 
 #pragma omp parallel for
-		for (int i = offset_row; i < (src.rows - offset_row); i++) { // Start looping
-			for (int j = 0; j < src_cols; j++) {
+		for (size_t i = offset_row; i < (src.rows - offset_row); ++i) { // Start looping
+			for (size_t j = 0; j < src_cols; j++) {
 				const src_type* src_ptr = src.ptr<src_type>(i) + j;
 				      dst_type* dst_ptr = dst.ptr<dst_type>(i) + j;
 				         float  sum     = 0;
@@ -150,7 +150,7 @@ public:
 
 
 				// Profiling result shown simple for loop is faster than std::for_each
-				for (int k = 0; k < kernel.size(); k++)
+				for (size_t k = 0; k < kernel.size(); ++k)
 				{
 					sum += src_ptr[(k - offset_row) * src_cols] * kernel[k];
 				}
@@ -197,11 +197,11 @@ public:
 		int offset_col = k_size / 2;
 
 #pragma omp parallel for
-		for (int i = 0; i < src_rows; i++) {
+		for (size_t i = 0; i < src_rows; ++i) {
 			const src_type* src_ptr = src.ptr<src_type>(i);
 			      dst_type* dst_ptr = dst.ptr<dst_type>(i);
 
-			for (int j = offset_col; j < (src_cols - offset_col); j++) {
+			for (size_t j = offset_col; j < (src_cols - offset_col); ++j) {
 
 
 				const src_type* src_temp = src_ptr + j;
@@ -216,7 +216,7 @@ public:
 
 
 				// Profiling result shown simple for loop is faster than std::for_each
-				for (int k = 0; k < kernel.size(); k++)
+				for (size_t k = 0; k < kernel.size(); k++)
 				{
 					sum += src_temp[k - offset_col] * kernel[k];
 				}
@@ -264,7 +264,7 @@ public:
 
 
 		#pragma omp parallel for
-		for (int i = 0; i < rows; i++) {
+		for (size_t i = 0; i < rows; ++i) {
 			const src_type* src_ptr = src.ptr<src_type>(i);
 				  dst_type* dst_ptr = dst.ptr<dst_type>(i);
 			
@@ -272,7 +272,7 @@ public:
 			// Vectorized confirmed
 			#pragma omp simd // for -O2 optimization
 #endif
-			for (int j = offset_col; j < (cols - offset_col); j++) 
+			for (size_t j = offset_col; j < (cols - offset_col); ++j) 
 				dst_ptr[j] = src_ptr[j - 1] * kernel[0] + src_ptr[j] * kernel[1] + src_ptr[j + 1] * kernel[2];
 
 		}
@@ -317,7 +317,7 @@ public:
 
 
 #pragma omp parallel for 
-		for (int i = offset_row; i < (rows - offset_row); i++) { // Start looping
+		for (size_t i = offset_row; i < (rows - offset_row); ++i) { // Start looping
 				const src_type* src_ptr = src.ptr<src_type>(i);
 				      dst_type* dst_ptr = dst.ptr<dst_type>(i);
 
@@ -325,7 +325,7 @@ public:
 			// Vectorized confirmed
 			#pragma omp simd // for -O2 optimization
 #endif
-			for (int j = 0; j < cols; j++)
+			for (size_t j = 0; j < cols; ++j)
 				dst_ptr[j] = src_ptr[j - cols] * kernel[0] + src_ptr[j] * kernel[1] + src_ptr[j + cols] * kernel[2];
 				
 			}
@@ -351,7 +351,7 @@ public:
 #ifdef __GNUC__
 		#pragma omp simd // for -O2 optimization
 #endif		
-		for (int j = 0; j < c; j++) // vectorized confirm
+		for (size_t j = 0; j < c; ++j) // vectorized confirm
 		{
 			src_f[j] = 0;
 			src_l[j] = 0;
@@ -360,7 +360,7 @@ public:
 #ifdef __GNUC__
 		#pragma omp simd // for -O2 optimization
 #endif		
-		for (int i = 0; i < r; i++) // vectorized confirm
+		for (size_t i = 0; i < r; ++i) // vectorized confirm
 		{
 			src_f[i * c] = 0;
 			src_f_l[i*c] = 0;
@@ -379,7 +379,7 @@ public:
 
 #ifdef _OPENMP
 	// Prevent overhead for allcating threads
-	int threadControl(int size){
+	int threadControl(const int size){
 		if(size >= 180000 && size < 1000000)
 			return (maxThreads >= 4) ? 4 : maxThreads;
 		else if (size >= 1000000 && size < 2073600)
@@ -390,7 +390,7 @@ public:
 			return (maxThreads >= 2) ? 2 : maxThreads;
 	}
 #else
-	int threadControl(int size) {
+	int threadControl(const int size) {
 		return 1;
 	}
 

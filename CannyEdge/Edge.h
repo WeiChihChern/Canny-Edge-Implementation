@@ -1,4 +1,6 @@
 #pragma once
+
+
 #include <vector>
 
 
@@ -115,23 +117,30 @@ public:
 private: 
 
 
-		// Input params: 
+	// Input params: 
 	//		Magnitdue should be in 8-bit uchar type
 	//		gradient should be in 8-bit schar type, storing -90 ~ 90 degrees
 	// Output:
 	//		Will save a uchar result to member variable 'suppressed'
-	void nonMaxSuppresion(Mat& magnitude, const Mat& gradient, float high_thres, float low_thres);
-	void new_nonMaxSuppression(Mat& magnitude, const Mat &gradient);
+	void nonMaxSuppresion(const Mat& magnitude, const Mat& gradient, float high_thres, float low_thres);
+	void new_nonMaxSuppression(const Mat& magnitude, const Mat &gradient);
 
 
 	// Input params: 
 	//		'src' should be in 8-bit uchar type
 	// Output:
 	//		will do thresholding inplace in member variable 'suppressed'
-	Mat hysteresis_threshold(Mat& src);
+	Mat hysteresis_threshold(const Mat& src);
 
 
 	inline double FastArcTan(double x);
+
+
+
+
+
+
+
 
 
 
@@ -157,7 +166,7 @@ private:
 
 		
 		#pragma omp parallel for 
-		for (int i = 0; i < this->rows; i++)
+		for (size_t i = 0; i < this->rows; ++i)
 		{
 			const src1_type* gx = src1.ptr<src1_type>(i);
 			const src2_type* gy = src2.ptr<src2_type>(i);
@@ -166,7 +175,7 @@ private:
 #ifdef __GNUC__
 			#pragma omp simd
 #endif		
-			for (int j = 0; j < this->cols; j++) 
+			for (size_t j = 0; j < this->cols; ++j) 
 			{ 
 				// float gyy = *(gy+j);
 				// float gxx = *(gx+j);
@@ -245,7 +254,7 @@ private:
 #else
 
 #pragma omp parallel for 
-		for (int i = 0; i < this->rows; i++) // Looping is faster than std::transform on VS 2019 & 2015
+		for (size_t i = 0; i < this->rows; ++i) // Looping is faster than std::transform on VS 2019 & 2015
 		{  
 			const src1_type*  gx = src1.ptr<src1_type>(i);
 			const src2_type*  gy = src2.ptr<src2_type>(i);
@@ -255,7 +264,7 @@ private:
 #ifdef __GNUC__
 		#pragma omp simd
 #endif
-	    	for (int j = 0; j < this->cols; j++)
+	    	for (size_t j = 0; j < this->cols; ++j)
 			{
 				double gyy = *(gy + j);
 				double gxx = *(gx + j);
@@ -318,7 +327,7 @@ private:
 
 
 		#pragma omp parallel for 
-		for (int i = 0; i < this->rows; i++) // Looping is faster than std::transform on VS 2019 & 2015
+		for (size_t i = 0; i < this->rows; ++i) // Looping is faster than std::transform on VS 2019 & 2015
 		{  
 			const src1_type*  gx = src1.ptr<src1_type>(i);
 			const src2_type*  gy = src2.ptr<src2_type>(i);
@@ -328,7 +337,7 @@ private:
 #ifdef __GNUC__
 			#pragma omp simd
 #endif
-	    	for (int j = 0; j < this->cols; j++)
+	    	for (size_t j = 0; j < this->cols; ++j)
 			{
 				short gyy = gy[j];
 				short gxx = gx[j];

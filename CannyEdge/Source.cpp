@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
 	
 
 	timer.start();
-	for (int i = 0; i < iterations; i++) {
+	for (size_t i = 0; i < iterations; i++) {
 		tool.cannyEdge2(input, result, 200, 100);
 	}
 	timer.stop(); 
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 
 
 	timer.start();
-	for (int i = 0; i < iterations; i++) {
+	for (size_t i = 0; i < iterations; i++) {
 		cv::Canny(input, result, 200, 100);
 	}
 	timer.stop();
