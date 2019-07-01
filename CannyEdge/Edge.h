@@ -137,16 +137,16 @@ private:
 
 		
 		#pragma omp parallel for 
-		for (size_t i = 0; i < this->rows; ++i)
+		for (int i = 0; i < this->rows; ++i)
 		{
 			const src1_type* gx = src1.ptr<src1_type>(i);
 			const src2_type* gy = src2.ptr<src2_type>(i);
 			float* dst_p = dst.ptr<float>(i);
 
 #ifdef __GNUC__
-			#pragma omp simd
+			#pragma omp simd 
 #endif		
-			for (size_t j = 0; j < this->cols; ++j) // vectorized 	
+			for (int j = 0; j < this->cols; ++j) // vectorized 	
 			{ 
 				dst_p[j] = abs(gy[j]) + abs(gx[j]); // faster
 				//dst_p[j] = std::sqrt(std::abs(gy[j]*gy[j] + gx[j]*gx[j]));
@@ -189,28 +189,32 @@ private:
 		const src2_type* gy;
 		schar* dst_p;
 
-
+		float w;
 
 		#pragma omp parallel for 
-		for (size_t i = 0; i < this->rows; ++i) 
+		for (int i = 0; i < this->rows; ++i)
 		{  
 			gx = src1.ptr<src1_type>(i);
 			gy = src2.ptr<src2_type>(i);
 			dst_p = dst.ptr<schar>(i);
 
 #ifdef __GNUC__
-			#pragma omp simd
+			#pragma omp simd //Vectorized
 #endif
-	    	for (size_t j = 0; j < this->cols; ++j)
+	    	for (int j = 0; j < this->cols; ++j)
 			{
-				float w = abs(gy[j] / (gx[j] + OFFSET));
+				w = abs(gy[j] / (gx[j] + OFFSET));
 
+#ifdef __GNUC__
+				dst_p[j] = this->simd_w_classifier(w);
+#else
 				if (w < 0.4)
 					dst_p[j] = 0;
 				else if (w > 2.3)
 					dst_p[j] = 90;
-				else 
+				else
 					dst_p[j] = 45;
+#endif
 			}
 		}
 
@@ -224,6 +228,77 @@ private:
 
 
 
+
+
+
+#ifdef __GNUC__
+	#pragma omp declare simd inbranch
+#endif
+	schar simd_w_classifier(float w) { // tested on gcc 7.6, no inline is faster
+		if (w < 0.4)
+			return 0;
+		else if (w > 2.3)
+			return 90;
+		else 
+			return 45;
+	};
+
+
+
+
+
+
+
+
+
+
+
+
+	template <typename inputType>
+	void check_neighbor(inputType * src, int c_r, int c_c, int rows, int cols) 
+	{
+		inputType* src_p = src-cols;
+		inputType* src_n = src+cols;
+
+		if(src_p[-1]==255 || src_p[1] == 255 || *src_p = 255 ||
+		   src_n[-1]==255 || src_n[1] == 255 || *src_n = 255 ||
+		   src[-1] == 255 || src[1] == 255   || *src   = 255)
+		   *src = 255; 
+		else
+			*src = 0;
+	};
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ifdef __GNUC__
+	#pragma omp declare simd inbranch
+#endif
+	uchar simd_find_strong_neighbor(const uchar* ptr, int cols, int j) { 
+		//cout << "val = " << (int)*ptr << endl;
+		if (*ptr == 0)
+			return 0;
+		else if (*ptr == 255)
+			return 255;
+		else
+		{
+			if (*(ptr + j - 1)        == 255 || *(ptr + j + 1)        == 255 || *(ptr+j - cols) == 255 || 
+				*(ptr + j + cols)     == 255 || *(ptr + j - cols - 1) == 255 || 
+				*(ptr + j - cols + 1) == 255 || *(ptr + j + cols + 1) == 255 || *(ptr + j + cols - 1) == 255)
+				return 255;
+			else 
+				return 0;
+		}
+	};
 
 
 	

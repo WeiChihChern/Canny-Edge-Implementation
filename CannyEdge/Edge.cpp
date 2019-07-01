@@ -142,7 +142,7 @@ void Edge::nonMaxSuppresion(
 
 
 	#pragma omp parallel for 
-	for (size_t i = 2; i < this->rows-2; ++i) {
+	for (int i = 2; i < this->rows-2; ++i) {
 		dst_ptr = dst.ptr<uchar>(i);
 		mag_ptr = magnitude.ptr<uchar>(i);
 		gra_ptr = gradient.ptr<schar>(i);
@@ -152,7 +152,7 @@ void Edge::nonMaxSuppresion(
 #ifdef __GNUC__
 		#pragma omp simd
 #endif
-		for (size_t j = 2; j < this->cols-2; ++j) 
+		for (int j = 2; j < this->cols-2; ++j)
 		{
 			cur_mag_val = *(mag_ptr+j);
 			theta       = gra_ptr[j];
@@ -221,7 +221,7 @@ Mat Edge::hysteresis_threshold(const Mat& src) {
 	// strong pixel in the 8-neighbor, and set itself to 255 if it does.
 	
 #pragma omp parallel for
-	for (size_t i = 1; i < this->rows-1; ++i)
+	for (int i = 1; i < this->rows-1; ++i)
 	{
 		dst_p  = dst.ptr<uchar>(i); 
 		nonM_p = src.ptr<uchar>(i); // non max result pointer
@@ -229,8 +229,12 @@ Mat Edge::hysteresis_threshold(const Mat& src) {
 #ifdef __GNUC__
 		#pragma omp simd // for -O2 optimization
 #endif	
-		for (size_t j = 1; j < this->cols-1; ++j) 
+		for (int j = 1; j < this->cols-1; ++j)
 		{
+			
+// #ifdef __GNUC__
+// 			dst_p[j] = this->simd_find_strong_neighbor( (nonM_p+j), this->cols, j );				
+// #else
 			uchar val = nonM_p[j];
 			if(val == 0)
 				dst_p[j] = val;
@@ -249,6 +253,7 @@ Mat Edge::hysteresis_threshold(const Mat& src) {
 					dst_p[j] = 0;
 				}
 			}		
+// #endif					
 		}
 	}
 
@@ -263,6 +268,12 @@ Mat Edge::hysteresis_threshold(const Mat& src) {
 
 	return dst;
 }
+
+
+
+
+
+
 
 
 
