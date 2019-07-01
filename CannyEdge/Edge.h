@@ -251,23 +251,5 @@ private:
 
 
 
-
-
-
-#ifdef __GNUC__
-	#pragma omp declare simd inbranch
-#endif
-	uchar check_8_neighbor(uchar* ptr, int cols, int j, float high_thres, float low_thres) {
-		if(ptr[j] < high_thres && ptr[j] > low_thres)
-		{
-			if (ptr[j - 1]        == 255 || ptr[j + 1]        == 255 || ptr[j - cols]    == 255 || 
-				ptr[j + cols]     == 255 || ptr[j - cols - 1] == 255 || 
-				ptr[j - cols + 1] == 255 || ptr[j + cols + 1] == 255 || ptr[j + cols - 1 ]== 255)
-				return 255;
-			else 
-				return 0;
-		}
-	}
-
 };
 

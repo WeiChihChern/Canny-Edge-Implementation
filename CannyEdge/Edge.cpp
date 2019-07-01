@@ -213,8 +213,6 @@ void Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	if (src.empty() || src.channels() == 3) { cout << "hysteresis_threshold() error!\n"; return; }
 
 	uchar* nonM_p;
-	// Mat dst(this->rows, this->cols, CV_8UC1); 
-
 
 	// In nonMax(), not only find the max along the graident direction,
 	// but everything >= high_thres is set to 255, and everything < low_thres
@@ -234,8 +232,8 @@ void Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 		{	
 			if(nonM_p[j] < high_thres && nonM_p[j] > low_thres)
 			{
-				if (*(nonM_p + j - 1) == 255 || *(nonM_p + j + 1) == 255 || *(nonM_p+j - cols) == 255 || 
-				    *(nonM_p + j + cols) == 255 || *(nonM_p + j - cols - 1) == 255 || 
+				if (*(nonM_p + j - 1)        == 255 || *(nonM_p + j + 1)        == 255 || *(nonM_p+j - cols) == 255 || 
+				    *(nonM_p + j + cols)     == 255 || *(nonM_p + j - cols - 1) == 255 || 
 					*(nonM_p + j - cols + 1) == 255 || *(nonM_p + j + cols + 1) == 255 || *(nonM_p + j + cols - 1) == 255) 
 				{
 					nonM_p[j] = 255;
