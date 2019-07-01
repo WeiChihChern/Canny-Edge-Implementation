@@ -115,7 +115,7 @@ private:
 	//		'src'        should be in 8-bit uchar type
 	// Output:
 	//		'dst'        where to store the result in 8-bit uchar
-	Mat hysteresis_threshold(const Mat& src);
+	void hysteresis_threshold(Mat& src, float high_thres, float low_thres);
 
 
 
@@ -254,54 +254,20 @@ private:
 
 
 
-	template <typename inputType>
-	void check_neighbor(inputType * src, int c_r, int c_c, int rows, int cols) 
-	{
-		inputType* src_p = src-cols;
-		inputType* src_n = src+cols;
-
-		if(src_p[-1]==255 || src_p[1] == 255 || *src_p = 255 ||
-		   src_n[-1]==255 || src_n[1] == 255 || *src_n = 255 ||
-		   src[-1] == 255 || src[1] == 255   || *src   = 255)
-		   *src = 255; 
-		else
-			*src = 0;
-	};
-
-
-
-
-
-
-
-
-
-
-
-
-
 #ifdef __GNUC__
 	#pragma omp declare simd inbranch
 #endif
-	uchar simd_find_strong_neighbor(const uchar* ptr, int cols, int j) { 
-		//cout << "val = " << (int)*ptr << endl;
-		if (*ptr == 0)
-			return 0;
-		else if (*ptr == 255)
-			return 255;
-		else
+	uchar check_8_neighbor(uchar* ptr, int cols, int j, float high_thres, float low_thres) {
+		if(ptr[j] < high_thres && ptr[j] > low_thres)
 		{
-			if (*(ptr + j - 1)        == 255 || *(ptr + j + 1)        == 255 || *(ptr+j - cols) == 255 || 
-				*(ptr + j + cols)     == 255 || *(ptr + j - cols - 1) == 255 || 
-				*(ptr + j - cols + 1) == 255 || *(ptr + j + cols + 1) == 255 || *(ptr + j + cols - 1) == 255)
+			if (ptr[j - 1]        == 255 || ptr[j + 1]        == 255 || ptr[j - cols]    == 255 || 
+				ptr[j + cols]     == 255 || ptr[j - cols - 1] == 255 || 
+				ptr[j - cols + 1] == 255 || ptr[j + cols + 1] == 255 || ptr[j + cols - 1 ]== 255)
 				return 255;
 			else 
 				return 0;
 		}
-	};
-
-
-	
+	}
 
 };
 

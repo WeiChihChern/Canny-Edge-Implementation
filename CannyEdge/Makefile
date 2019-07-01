@@ -1,5 +1,5 @@
 CC = g++ 
-CFLAGS = -std=c++11 -march=native -Wall -pthread -O2 -g -mavx2 -fopt-info-vec-optimized -ffast-math -fno-math-errno
+CFLAGS = -std=c++11 -march=native -Wall -pthread -O2 -g -mavx2 -fopt-info-vec-all -ffast-math -fno-math-errno
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 0)

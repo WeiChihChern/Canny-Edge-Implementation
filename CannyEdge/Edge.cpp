@@ -63,6 +63,7 @@ Edge::~Edge()
 
 void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 
+
 	this->rows = src.rows;
 	this->cols = src.cols;
 	this->size = this->rows * this->cols;
@@ -103,12 +104,14 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 
 	this->nonMaxSuppresion(this->magnitude, this->gradient, gy, gx, this->suppressed, high_thres, low_thres);
 
-	dst = this->hysteresis_threshold(suppressed);
+	this->hysteresis_threshold(suppressed, high_thres, low_thres);
+
+
+	dst = this->suppressed;
 
 	this->release();
 
 	return;
-
 }
 
 
@@ -205,13 +208,12 @@ void Edge::nonMaxSuppresion(
 
 
 
-Mat Edge::hysteresis_threshold(const Mat& src) {
+void Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 
-	if (src.empty() || src.channels() == 3) { cout << "hysteresis_threshold() error!\n"; return Mat(0,0,CV_8UC1); }
+	if (src.empty() || src.channels() == 3) { cout << "hysteresis_threshold() error!\n"; return; }
 
-	uchar* dst_p;
-	const uchar* nonM_p;
-	Mat dst(this->rows, this->cols, CV_8UC1); 
+	uchar* nonM_p;
+	// Mat dst(this->rows, this->cols, CV_8UC1); 
 
 
 	// In nonMax(), not only find the max along the graident direction,
@@ -223,50 +225,35 @@ Mat Edge::hysteresis_threshold(const Mat& src) {
 #pragma omp parallel for
 	for (int i = 1; i < this->rows-1; ++i)
 	{
-		dst_p  = dst.ptr<uchar>(i); 
 		nonM_p = src.ptr<uchar>(i); // non max result pointer
 			
 #ifdef __GNUC__
 		#pragma omp simd // for -O2 optimization
 #endif	
 		for (int j = 1; j < this->cols-1; ++j)
-		{
-			
-// #ifdef __GNUC__
-// 			dst_p[j] = this->simd_find_strong_neighbor( (nonM_p+j), this->cols, j );				
-// #else
-			uchar val = nonM_p[j];
-			if(val == 0)
-				dst_p[j] = val;
-			else if (val == 255)
-				dst_p[j] = val;
-			else
+		{	
+			if(nonM_p[j] < high_thres && nonM_p[j] > low_thres)
 			{
 				if (*(nonM_p + j - 1) == 255 || *(nonM_p + j + 1) == 255 || *(nonM_p+j - cols) == 255 || 
 				    *(nonM_p + j + cols) == 255 || *(nonM_p + j - cols - 1) == 255 || 
 					*(nonM_p + j - cols + 1) == 255 || *(nonM_p + j + cols + 1) == 255 || *(nonM_p + j + cols - 1) == 255) 
 				{
-					dst_p[j] = 255;
+					nonM_p[j] = 255;
 				}
 				else // No strong pixel (=255) in 8 neighbors
 				{ 
-					dst_p[j] = 0;
+					nonM_p[j] = 0;
 				}
-			}		
-// #endif					
+			}	
 		}
 	}
 
-	this->edge2zero<uchar>(dst);
 
 #ifdef DEBUG_IMSHOW_RESULT
-	imshow("Hysteresis threshold result", dst);
+	imshow("Hysteresis threshold result", this->suppressed);
 	waitKey(10);
 #endif 
 
-
-
-	return dst;
 }
 
 
