@@ -140,14 +140,6 @@ public:
 				      dst_type* dst_ptr = dst.ptr<dst_type>(i) + j;
 				         float  sum     = 0;
 
-				//std::for_each(kernel.begin(), kernel.end(),
-				//	[src_ptr, &sum, k_idx, &src_cols] (const float& k_val) mutable
-				//	{
-				//		const float *val = src_ptr - (k_idx++ * src_cols);
-				//		sum += (*val * k_val);
-				//	}
-				//);
-
 
 				// Profiling result shown simple for loop is faster than std::for_each
 				for (int k = 0; k < kernel.size(); ++k)
@@ -207,19 +199,12 @@ public:
 				const src_type* src_temp = src_ptr + j;
 				float sum = 0;
 
-				//std::for_each(kernel.begin(), kernel.end(), 
-				//	[src_temp, &sum, k_idx](const float &k_val) mutable
-				//	{
-				//		sum += (src_temp[k_idx++] * k_val);
-				//	}
-				//);
-
-
-				// Profiling result shown simple for loop is faster than std::for_each
+#ifdef __GNUC__
+				#pragma omp simd 
+#endif
 				for (int k = 0; k < kernel.size(); k++)
-				{
 					sum += src_temp[k - offset_col] * kernel[k];
-				}
+				
 
 
 				dst_ptr[j] = sum;

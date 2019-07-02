@@ -112,7 +112,7 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 	this->release();
 
 	return;
-}
+} // end of cannyedge2
 
 
 
@@ -194,7 +194,7 @@ void Edge::nonMaxSuppresion(
 #endif 
 
 	return;
-}
+}  // end of nonMax
 
 
 
@@ -252,7 +252,7 @@ void Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	waitKey(10);
 #endif 
 
-}
+} // end of hysteresis_threshold
 
 
 

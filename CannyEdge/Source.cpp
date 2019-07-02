@@ -49,10 +49,9 @@ int main(int argc, char* argv[]) {
 	small = imread("Capture.PNG", 0);
 
 	if (_big)
-	{
-		resize(small, big, Size(3840, 2160)); // For benchmark only
+		resize(small, big, Size(3840, 2160)), // For benchmark only
 		input = big;
-	}
+	
 	else
 	{
 		GaussianBlur(small, small, Size(3, 3), 0.5);

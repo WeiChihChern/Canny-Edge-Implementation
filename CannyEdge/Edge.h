@@ -146,9 +146,9 @@ private:
 #ifdef __GNUC__
 			#pragma omp simd 
 #endif		
-			for (int j = 0; j < this->cols; ++j) // vectorized 	
+			for (int j = 0; j < this->cols; ++j) 
 			{ 
-				dst_p[j] = abs(gy[j]) + abs(gx[j]); // faster
+				dst_p[j] = abs(gy[j]) + abs(gx[j]); // faster & vectorized
 				//dst_p[j] = std::sqrt(std::abs(gy[j]*gy[j] + gx[j]*gx[j]));
 			}
 		}
@@ -234,7 +234,7 @@ private:
 #ifdef __GNUC__
 	#pragma omp declare simd inbranch
 #endif
-	schar simd_w_classifier(float w) { // tested on gcc 7.6, no inline is faster
+	inline schar simd_w_classifier(float w) { 
 		if (w < 0.4)
 			return 0;
 		else if (w > 2.3)
@@ -251,5 +251,5 @@ private:
 
 
 
-};
+}; // end of Edge class
 
