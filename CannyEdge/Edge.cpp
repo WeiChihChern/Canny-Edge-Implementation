@@ -144,7 +144,7 @@ void Edge::nonMaxSuppresion(
 
 
 
-	#pragma omp parallel for 
+	#pragma omp parallel for schedule(dynamic, 6)
 	for (int i = 2; i < this->rows-2; ++i) {
 		dst_ptr = dst.ptr<uchar>(i);
 		mag_ptr = magnitude.ptr<uchar>(i);
@@ -157,33 +157,33 @@ void Edge::nonMaxSuppresion(
 #endif
 		for (int j = 2; j < this->cols-2; ++j)
 		{
-			cur_mag_val = *(mag_ptr+j);
-			theta       = gra_ptr[j];
-		
+				cur_mag_val = *(mag_ptr+j);
+				theta       = gra_ptr[j];
+			
 
-			if ( cur_mag_val > low_thres && cur_mag_val != 0 ) // Edge pixel
-			{ 
-				if (theta == 90) 
-				{
-					// vertical direction
-					if ( cur_mag_val > mag_ptr[j - cols] && cur_mag_val >= mag_ptr[j + cols] ) 
-						dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
-				}
-				else if (theta == 0) 
-				{
-					// horizontal direction
-					if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val >= mag_ptr[j + 1]) 
-						dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
-				}
-				else  // bottom-left to top-right  or  bottom-right to top-left direction
+				if ( cur_mag_val > low_thres && cur_mag_val != 0 ) // Edge pixel
 				{ 
-					int d = (gy_p[j] * gx_p[j] < 0) ? 1 : -1;
-					if (cur_mag_val >= mag_ptr[j + cols - d] && cur_mag_val > mag_ptr[j - cols + d]) 
-						dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
-				}
-			} 
-			else // Non edge pixel
-				dst_ptr[j] = 0;
+						if (theta == 90) 
+						{
+							// vertical direction
+								if ( cur_mag_val > mag_ptr[j - cols] && cur_mag_val >= mag_ptr[j + cols] ) 
+									dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
+						}
+						else if (theta == 0) 
+						{
+								// horizontal direction
+								if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val >= mag_ptr[j + 1]) 
+									dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
+						}
+						else  // bottom-left to top-right  or  bottom-right to top-left direction
+						{ 
+								int d = (gy_p[j] * gx_p[j] < 0) ? 1 : -1;
+								if (cur_mag_val >= mag_ptr[j + cols - d] && cur_mag_val > mag_ptr[j - cols + d]) 
+									dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
+						}
+				} 
+				else // Non edge pixel
+					dst_ptr[j] = 0;
 		}
 	}
 
@@ -220,29 +220,29 @@ void Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	// Check the pixel value between high_thres & lower_thres to see if there's any 
 	// strong pixel in the 8-neighbor, and set itself to 255 if it does.
 	
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic)
 	for (int i = 1; i < this->rows-1; ++i)
 	{
 		nonM_p = src.ptr<uchar>(i); // non max result pointer
 			
 #ifdef __GNUC__
-		#pragma omp simd // for -O2 optimization
+		#pragma omp simd  // for -O2 optimization
 #endif	
 		for (int j = 1; j < this->cols-1; ++j)
 		{	
-			if(nonM_p[j] < high_thres && nonM_p[j] > low_thres)
-			{
-				if (*(nonM_p + j - 1)        == 255 || *(nonM_p + j + 1)        == 255 || *(nonM_p+j - cols) == 255 || 
-				    *(nonM_p + j + cols)     == 255 || *(nonM_p + j - cols - 1) == 255 || 
-					*(nonM_p + j - cols + 1) == 255 || *(nonM_p + j + cols + 1) == 255 || *(nonM_p + j + cols - 1) == 255) 
+				if(nonM_p[j] < high_thres && nonM_p[j] > low_thres)
 				{
-					nonM_p[j] = 255;
-				}
-				else // No strong pixel (=255) in 8 neighbors
-				{ 
-					nonM_p[j] = 0;
-				}
-			}	
+						if (*(nonM_p + j - 1)        == 255 || *(nonM_p + j + 1)        == 255 || *(nonM_p+j - cols) == 255 || 
+							*(nonM_p + j + cols)     == 255 || *(nonM_p + j - cols - 1) == 255 || 
+							*(nonM_p + j - cols + 1) == 255 || *(nonM_p + j + cols + 1) == 255 || *(nonM_p + j + cols - 1) == 255) 
+						{
+								nonM_p[j] = 255;
+						}
+						else // No strong pixel (=255) in 8 neighbors
+						{ 
+								nonM_p[j] = 0;
+						}
+				}	
 		}
 	}
 

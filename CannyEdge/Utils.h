@@ -248,7 +248,7 @@ public:
 		int cols = src.cols;
 
 
-		#pragma omp parallel for
+		#pragma omp parallel for 
 		for (int i = 0; i < rows; ++i) {
 			const src_type* src_ptr = src.ptr<src_type>(i);
 				  dst_type* dst_ptr = dst.ptr<dst_type>(i);
