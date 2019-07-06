@@ -1,4 +1,4 @@
-CC = g++ 
+CC = g++-9
 CFLAGS = -std=c++11 -march=native -Wall -pthread -O2 -g -mavx2 -fopt-info-optimized -ffast-math -fno-math-errno
 
 DEBUG ?= 0

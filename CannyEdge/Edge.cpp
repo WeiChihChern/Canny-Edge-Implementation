@@ -220,7 +220,7 @@ void Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
 	// Check the pixel value between high_thres & lower_thres to see if there's any 
 	// strong pixel in the 8-neighbor, and set itself to 255 if it does.
 	
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic,1)
 	for (int i = 1; i < this->rows-1; ++i)
 	{
 		nonM_p = src.ptr<uchar>(i); // non max result pointer
