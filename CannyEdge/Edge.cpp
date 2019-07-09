@@ -104,8 +104,7 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 
 	this->nonMaxSuppresion(this->magnitude, this->gradient, gy, gx, this->suppressed, high_thres, low_thres);
 
-	this->hysteresis_threshold(suppressed, high_thres, low_thres);
-
+	this->hysteresis_threshold(this->suppressed);
 
 	dst = this->suppressed;
 
@@ -167,19 +166,31 @@ void Edge::nonMaxSuppresion(
 						{
 							// vertical direction
 								if ( cur_mag_val > mag_ptr[j - cols] && cur_mag_val >= mag_ptr[j + cols] ) 
-									dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
+								{
+										if(cur_mag_val >= high_thres) dst_ptr[j] = 255;
+										else 						  dst_ptr[j] = 125;
+								}
+									
 						}
 						else if (theta == 0) 
 						{
 								// horizontal direction
 								if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val >= mag_ptr[j + 1]) 
-									dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
+								{
+										if(cur_mag_val >= high_thres) dst_ptr[j] = 255;
+										else 						  dst_ptr[j] = 125;
+								}
+									
 						}
 						else  // bottom-left to top-right  or  bottom-right to top-left direction
 						{ 
 								int d = (gy_p[j] * gx_p[j] < 0) ? 1 : -1;
 								if (cur_mag_val >= mag_ptr[j + cols - d] && cur_mag_val > mag_ptr[j - cols + d]) 
-									dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : cur_mag_val;
+								{
+										if(cur_mag_val >= high_thres) dst_ptr[j] = 255;
+										else 						  dst_ptr[j] = 125;
+								}
+									
 						}
 				} 
 				else // Non edge pixel
@@ -204,61 +215,33 @@ void Edge::nonMaxSuppresion(
 
 
 
+void Edge::hysteresis_threshold(Mat& src) 
+{
+	uchar *img_start = src.ptr<uchar>(0);
 
 
-
-
-void Edge::hysteresis_threshold(Mat& src, float high_thres, float low_thres) {
-
-	if (src.empty() || src.channels() == 3) { cout << "hysteresis_threshold() error!\n"; return; }
-
-	uchar* nonM_p;
-
-	// In nonMax(), not only find the max along the graident direction,
-	// but everything >= high_thres is set to 255, and everything < low_thres
-	// is set to zero. 
-	// Check the pixel value between high_thres & lower_thres to see if there's any 
-	// strong pixel in the 8-neighbor, and set itself to 255 if it does.
-	
-#pragma omp parallel for schedule(dynamic,1)
-	for (int i = 1; i < this->rows-1; ++i)
+ #pragma omp parallel for //schedule(dynamic,1)
+	for (int i = 2; i < src.rows-1; i++)
 	{
-		nonM_p = src.ptr<uchar>(i); // non max result pointer
-			
+		uchar* img_p = src.ptr<uchar>(i);
+		
 #ifdef __GNUC__
-		#pragma omp simd  // for -O2 optimization
+		#pragma omp simd  
 #endif	
-		for (int j = 1; j < this->cols-1; ++j)
-		{	
-				if(nonM_p[j] < high_thres && nonM_p[j] > low_thres)
-				{
-						if (*(nonM_p + j - 1)        == 255 || *(nonM_p + j + 1)        == 255 || *(nonM_p+j - cols) == 255 || 
-							*(nonM_p + j + cols)     == 255 || *(nonM_p + j - cols - 1) == 255 || 
-							*(nonM_p + j - cols + 1) == 255 || *(nonM_p + j + cols + 1) == 255 || *(nonM_p + j + cols - 1) == 255) 
-						{
-								nonM_p[j] = 255;
-						}
-						else // No strong pixel (=255) in 8 neighbors
-						{ 
-								nonM_p[j] = 0;
-						}
-				}	
+		for (int j = 2; j < src.cols-1; j++)
+		{
+			if(img_p[j] == 125) 
+			{
+				// bool b = canny_hysteresis_dfs(img_start, i, j, src.rows, src.cols, 0);
+				// if(!b) img_p[j] = 0;
+				if( !(canny_hysteresis_dfs(img_start, i, j, src.rows, src.cols, 0)) ) img_p[j] = 0;
+			}
 		}
 	}
 
 
-#ifdef DEBUG_IMSHOW_RESULT
-	imshow("Hysteresis threshold result", this->suppressed);
-	waitKey(10);
-#endif 
 
-} // end of hysteresis_threshold
-
-
-
-
-
-
+}
 
 
 

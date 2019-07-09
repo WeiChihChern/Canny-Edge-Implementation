@@ -109,13 +109,7 @@ private:
 
 
 
-
-
-	// Input params: 
-	//		'src'        should be in 8-bit uchar type
-	// Output:
-	//		'dst'        where to store the result in 8-bit uchar
-	void hysteresis_threshold(Mat& src, float high_thres, float low_thres);
+	void hysteresis_threshold(Mat& src);
 
 
 
@@ -220,6 +214,43 @@ private:
 
 
 		return;
+	};
+
+
+
+
+
+
+
+	template <typename T>
+	bool canny_hysteresis_dfs(T* src_p, const int i, const int j, const int rows, const int cols, const int key)
+	{
+			int step = i * cols + j;
+
+			// check boundary, make sure instensity isn't equal to zero & key.  key means visted.
+			if(i < 0 || j < 0 || i >= rows || j >= cols || src_p[step] == 0 || src_p[step] == key)
+					return false;
+
+			// check if found what we want
+			else if (*(src_p + i*cols + j) == 255)
+					return true;
+
+			// if its a potential edge candidate, keep looking its neighbors
+			else if (*(src_p + i*cols + j) == 125)
+			{
+					*(src_p + i*cols + j) = key; // marked as visited
+					
+					if( canny_hysteresis_dfs(src_p, i,   j+1, rows, cols, key) ) {	src_p[step] = 255;  return true; }
+					if( canny_hysteresis_dfs(src_p, i,   j-1, rows, cols, key) ) {	src_p[step] = 255;  return true; }
+					if( canny_hysteresis_dfs(src_p, i+1,   j, rows, cols, key) ) {	src_p[step] = 255;  return true; }
+					if( canny_hysteresis_dfs(src_p, i-1,   j, rows, cols, key) ) {	src_p[step] = 255;  return true; }
+					if( canny_hysteresis_dfs(src_p, i+1, j+1, rows, cols, key) ) {	src_p[step] = 255;  return true; }
+					if( canny_hysteresis_dfs(src_p, i+1, j-1, rows, cols, key) ) {	src_p[step] = 255;  return true; }
+					if( canny_hysteresis_dfs(src_p, i-1, j+1, rows, cols, key) ) {	src_p[step] = 255;  return true; }
+					if( canny_hysteresis_dfs(src_p, i-1, j-1, rows, cols, key) ) {	src_p[step] = 255;  return true; }
+					return false;
+			}
+			return false;
 	};
 
 
