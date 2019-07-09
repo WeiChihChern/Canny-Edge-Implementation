@@ -5,7 +5,7 @@ In Edge.h, there are two class member functions to do canny edge detection: *can
 
 *cannyEdge2()* is an optimized version of cannyEdge() in 2D convolution process, it separates the sobel kernel into two smaller kernels for faster convolution process and reduces one for-loop.
 
-# Latest master 6/30
+### Update 6/30
 - Provided a docker image: [docker pull wchern/dev:opencv410](https://cloud.docker.com/u/wchern/repository/docker/wchern/dev)
 - Added Makefile (`make clean` supported) for ubuntu. Just `make` to compile.
 - Added argument support for selecting benchmark parameteres (smalle or large image, number of iterations, instructions below)
@@ -17,7 +17,7 @@ In Edge.h, there are two class member functions to do canny edge detection: *can
 - optimized `nonMaxSuppression()` & `hysteresis_threshold()` to reduce if statements </br>
 ### Update on 7/1 </br>
 - Vectorized a for-loop using omp inbranch for flow control </br>
-### Update on 7/1 </br>
+# Update on 7/1 </br>
 - Revised hysteresis threshold's algorithm, using recursive DFS now with same performance
 
 | Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  | Env |
