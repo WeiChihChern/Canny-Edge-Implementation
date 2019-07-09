@@ -17,7 +17,7 @@ In Edge.h, there are two class member functions to do canny edge detection: *can
 - optimized `nonMaxSuppression()` & `hysteresis_threshold()` to reduce if statements </br>
 ### Update on 7/1 </br>
 - Vectorized a for-loop using omp inbranch for flow control </br>
-# Update on 7/1 </br>
+# Update on 7/9 </br>
 - Revised hysteresis threshold's algorithm, using recursive DFS now with same performance
 
 | Input size    |  Time (ms) (Avg. of 1000 runs)   | OpenMP Enable?  | Env |
