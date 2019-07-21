@@ -34,6 +34,6 @@ Parameter Usage: `./app_name -firstPara -secPara thirPara` </br>
 
 ![1](https://user-images.githubusercontent.com/40074617/60336360-b3c93280-99d2-11e9-92cc-212a8ee19e89.PNG)
 
-## CUDA implementation added (See Edge_Cuda.cuh, tested on Windows with Cuda 10.1)
+## CUDA implementation added 7/22 (See Edge_Cuda.cuh, tested on Windows with Cuda 10.1)
 Can be further optimized and factorized tho!
 
