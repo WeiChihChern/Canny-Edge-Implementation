@@ -1,5 +1,5 @@
 # Canny-Edge-Implementation
-#### (My own implementation on Canny Edge)
+#### (My own implementation on Canny Edge runs on both CPU & GPU: CUDA)
 
 In Edge.h, there are two class member functions to do canny edge detection: *cannyEdge() & cannyEdge2()*
 
