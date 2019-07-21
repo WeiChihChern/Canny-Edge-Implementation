@@ -6,7 +6,7 @@ In Edge.h, there are two class member functions to do canny edge detection: *can
 *cannyEdge2()* is an optimized version of cannyEdge() in 2D convolution process, it separates the sobel kernel into two smaller kernels for faster convolution process and reduces one for-loop.
 
 ### Update 6/30
-- Provided a docker image: [docker pull wchern/dev:opencv410](https://cloud.docker.com/u/wchern/repository/docker/wchern/dev)
+- Provided a docker image: [docker pull wchern/dev:opencv](https://cloud.docker.com/u/wchern/repository/docker/wchern/dev)
 - Added Makefile (`make clean` supported) for ubuntu. Just `make` to compile.
 - Added argument support for selecting benchmark parameteres (smalle or large image, number of iterations, instructions below)
 - Edited `define marco` for gcc (version 7.4.0) compiler & microsoft's compiler (SIMD vectorization available on g++)
