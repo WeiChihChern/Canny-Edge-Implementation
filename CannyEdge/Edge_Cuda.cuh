@@ -9,14 +9,14 @@ typedef unsigned char uchar;
 
 
 // Marco for error checking
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
-{
-	if (code != cudaSuccess)
-	{
-		fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-	}
-}
+//#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+//inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
+//{
+//	if (code != cudaSuccess)
+//	{
+//		fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+//	}
+//}
 
 
 extern "C"
