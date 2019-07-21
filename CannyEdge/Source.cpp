@@ -59,10 +59,6 @@ int main(int argc, char* argv[]) {
 	}
 
 
-	
-	
-	
-
 	timer.start();
 	
 	for (int i = 0; i < iterations; i++) 
@@ -73,10 +69,8 @@ int main(int argc, char* argv[]) {
 	cout << "My canny edge on small image: " << timer.elapsedMilliseconds() / (double)iterations << "ms (avg of " 
 		<< to_string(iterations) << " runs)\n";
 
-	imshow("My canny edge", result);
-	waitKey(0);
 
-
+		
 
 	timer.start();
 	for (int i = 0; i < iterations; i++) 
@@ -86,6 +80,17 @@ int main(int argc, char* argv[]) {
 
 	cout << "Opencv canny edge on small image: " << timer.elapsedMilliseconds() / (double)iterations 
 		<< "ms (avg of " << to_string(iterations) << " runs)\n";
+	
+	
+
+
+
+	imshow("My canny edge", result);
+	waitKey(0);
+
+
+
+
 
 
 	imshow("Opencv canny edge", result);

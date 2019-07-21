@@ -13,7 +13,7 @@ using namespace cv;
 
 
 constexpr auto OFFSET   = 0.01;      
-
+typedef  unsigned char  uchar;
 
 
 #ifdef _DEBUG
@@ -59,6 +59,10 @@ public:
 
 
 
+
+
+
+	void cannyEdge_cuda(Mat& src, float& high_thres, float& low_thres);
 
 
 

@@ -4,6 +4,7 @@
 #define _USE_MATH_DEFINES // for C++
 #include <math.h>
 
+#include "Edge_Cuda.cuh"
 
 
 
@@ -23,32 +24,21 @@ Edge::~Edge()
 
 
 
+void Edge::cannyEdge_cuda(Mat& src, Mat& dst, const float& high_thres, const float& low_thres)
+{
+	canny_cuda_impl(src.data, dst.data, src.rows, src.cols, high_thres, low_thres);
 
-// void Edge::CannyEdge(Mat& src, Mat &dst, float high_thres, float low_thres) {
+	this->hysteresis_threshold(dst);
 
-// 	this->rows = src.rows;
-// 	this->cols = src.cols;
-// 	this->size = this->rows * this->cols;
-
-// 	Mat copy1, copy2;
-// 	this->conv2<uchar, short>(src, copy1, sobel_horizontal);
-// 	this->conv2<uchar, short>(src, copy2, sobel_vertical);
-
-// 	this->calculate_Magnitude<short,short>(copy1, copy2, this->magnitude, true);
-// 	this->calculate_Gradients<short, short>(copy1, copy2, this->gradient);
-	
-
-
-// 	this->nonMaxSuppresion(magnitude, gradient, copy1, copy2, high_thres, low_thres);
+	return;
+}
 
 
 
-// 	dst = this->hysteresis_threshold(suppressed);
 
-// 	this->release();
-	
-// 	return;
-// }
+
+
+
 
 
 
@@ -68,10 +58,6 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 	this->cols = src.cols;
 	this->size = this->rows * this->cols;
 
-
-#ifdef _OPENMP
-	omp_set_num_threads(threadControl(this->size));
-#endif
 
 
 	Mat gx(src.rows, src.cols, CV_16SC1); // Short type
@@ -93,6 +79,9 @@ void Edge::cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 	waitKey(10);
 #endif 
 
+#ifdef _OPENMP
+	omp_set_num_threads(threadControl(this->size));
+#endif
 	
 
 	// Save magnitude result in unsigned char (uchar) 
@@ -143,7 +132,7 @@ void Edge::nonMaxSuppresion(
 
 
 
-	#pragma omp parallel for schedule(dynamic, 6)
+	#pragma omp parallel for schedule(dynamic, 1)
 	for (int i = 2; i < this->rows-2; ++i) {
 		dst_ptr = dst.ptr<uchar>(i);
 		mag_ptr = magnitude.ptr<uchar>(i);

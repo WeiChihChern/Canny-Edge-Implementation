@@ -8,6 +8,7 @@ using namespace cv;
 
 #ifdef _OPENMP
 	#include <omp.h>
+	#define sizePerThreadConv2 29541
 	#define maxThreads omp_get_max_threads()
 #endif // _OPENMP
 
@@ -66,6 +67,8 @@ public:
 
 		int offset_row = k_rows / 2,
 			offset_col = k_cols / 2;
+
+
 
 
 #pragma omp parallel for 
@@ -247,18 +250,22 @@ public:
 		int rows = src.rows;
 		int cols = src.cols;
 
+		const kernel_type* ker = &kernel[0];
 
+#ifdef _OPENMP
+	omp_set_num_threads(conv2ThreadControl(rows*cols));
+#endif
 		#pragma omp parallel for 
 		for (int i = 0; i < rows; ++i) {
-			const src_type* src_ptr = src.ptr<src_type>(i);
-				  dst_type* dst_ptr = dst.ptr<dst_type>(i);
+			const src_type* __restrict__ src_ptr = src.ptr<src_type>(i);
+				  dst_type* __restrict__ dst_ptr = dst.ptr<dst_type>(i);
 			
 #ifdef __GNUC__
 			// Vectorized confirmed
-			#pragma omp simd // for -O2 optimization
+			#pragma omp simd aligned(ker, src_ptr:4)// for -O2 optimization
 #endif
 			for (int j = offset_col; j < (cols - offset_col); ++j)
-				dst_ptr[j] = src_ptr[j - 1] * kernel[0] + src_ptr[j] * kernel[1] + src_ptr[j + 1] * kernel[2];
+				dst_ptr[j] = src_ptr[j - 1] * ker[0] + src_ptr[j] * ker[1] + src_ptr[j + 1] * ker[2];
 
 		}
 
@@ -300,15 +307,17 @@ public:
 		int rows = src.rows;
 		int cols = src.cols;
 
-
+#ifdef _OPENMP
+	omp_set_num_threads(conv2ThreadControl(rows*cols));
+#endif
 #pragma omp parallel for 
 		for (int i = offset_row; i < (rows - offset_row); ++i) { // Start looping
-				const src_type* src_ptr = src.ptr<src_type>(i);
-				      dst_type* dst_ptr = dst.ptr<dst_type>(i);
+				const src_type* __restrict__ src_ptr = src.ptr<src_type>(i);
+				      dst_type* __restrict__ dst_ptr = dst.ptr<dst_type>(i);
 
 #ifdef __GNUC__
 			// Vectorized confirmed
-			#pragma omp simd // for -O2 optimization
+			#pragma omp simd aligned(src_ptr:8)// for -O2 optimization
 #endif
 			for (int j = 0; j < cols; ++j)
 				dst_ptr[j] = src_ptr[j - cols] * kernel[0] + src_ptr[j] * kernel[1] + src_ptr[j + cols] * kernel[2];
@@ -367,15 +376,22 @@ public:
 
 #ifdef _OPENMP
 	// Prevent overhead for allcating threads
-	int threadControl(const int size){
-		if(size >= 180000 && size < 1000000)
-			return (maxThreads >= 4) ? 4 : maxThreads;
-		else if (size >= 1000000 && size < 2073600)
-			return (maxThreads >= 6) ? 6 : maxThreads;
-		else if (size >= 2073600)
-			return (maxThreads >= 8) ? 8 : maxThreads;
-		else 
-			return (maxThreads >= 2) ? 2 : maxThreads;
+	inline int conv2ThreadControl(const int& size)
+	{
+		int numThreads = std::round(size / sizePerThreadConv2);
+		return (numThreads > maxThreads) ? maxThreads : numThreads;
+	}
+
+	inline int threadControl(const int size){
+		return 8;
+		// if(size >= 180000 && size < 1000000)
+		// 	return (maxThreads >= 4) ? 4 : maxThreads;
+		// else if (size >= 1000000 && size < 2073600)
+		// 	return (maxThreads >= 6) ? 6 : maxThreads;
+		// else if (size >= 2073600)
+		// 	return (maxThreads >= 8) ? 8 : maxThreads;
+		// else 
+		// 	return (maxThreads >= 2) ? 2 : maxThreads;
 	}
 #else
 	int threadControl(const int size) {
