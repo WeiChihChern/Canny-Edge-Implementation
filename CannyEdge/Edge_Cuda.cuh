@@ -12,14 +12,8 @@ typedef unsigned char uchar;
 
 extern "C"
 {
-	void canny_cuda_impl(
-		uchar*src, uchar *dst,
-		int rows,		 int cols,
-		float high_thres, float low_thres);
+	void canny_cuda_impl(uchar*src, uchar *dst, int rows, int cols, float high_thres, float low_thres);
 
-
-	void canny_cuda_init();
-	
 }
 
 
