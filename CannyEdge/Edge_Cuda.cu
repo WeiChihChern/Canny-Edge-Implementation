@@ -119,7 +119,7 @@ void get_info_from_edge(float* src1, float* src2, int rows, int cols)
 };
 
 
-// Cuda store 2D data in row major order
+// Cuda store 2D data in column major order
 // Opencv does the otherwise
 __global__
 void nonMax(
