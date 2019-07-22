@@ -297,7 +297,10 @@ void canny_cuda_init()
 {
 	cudaFree(0);
 }
+<<<<<<< HEAD
 
 
 
 #endif // !_EDGE_CUDA_CU_
+=======
+>>>>>>> 68740e3dcfa7938689700f1f10801965c3231a41
