@@ -1,4 +1,10 @@
+#ifndef _EDGE_CUDA_CU_
+#define _EDGE_CUDA_CU_
+
+
+
 #include "Edge_Cuda.cuh"
+#include "Cuda_helper.cuh"
 #include <math.h>
 
 
@@ -119,7 +125,7 @@ void get_info_from_edge(float* src1, float* src2, int rows, int cols)
 };
 
 
-// Cuda store 2D data in row major order
+// Cuda store 2D data in column major order
 // Opencv does the otherwise
 __global__
 void nonMax(
@@ -253,12 +259,19 @@ void canny_cuda_impl(
 	gpuErrchk(cudaMalloc((void **)&non_max, s_uchar));   // store non max suppression result in uchar 
 
 
-	dim3 threadPerBlock(16, 16);
+	dim3 threadPerBlock(8, 8);
 	dim3 blocksPerGrid((cols / threadPerBlock.x) + 1, (rows / threadPerBlock.y) + 1);
 
 	// Convolution with 2 sobel kernels
 	conv2_h <<<blocksPerGrid, threadPerBlock>>> (gpu_dst_h, rows, cols, 3, 3);
 	conv2_v <<<blocksPerGrid, threadPerBlock>>> (gpu_dst_v, rows, cols, 3, 3);
+
+
+
+	// Bind gpu_dst_h & _v to texture
+
+
+
 
 	// Get magnitude and direction result from 2 edge maps
 	//	Then reuse the variable:
@@ -284,3 +297,7 @@ void canny_cuda_init()
 {
 	cudaFree(0);
 }
+
+
+
+#endif // !_EDGE_CUDA_CU_
