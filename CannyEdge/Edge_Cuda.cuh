@@ -1,5 +1,4 @@
-#ifndef _EDGE_CUDA_CUH_
-#define _EDGE_CUDA_CUH_
+#pragma once
 
 #include <cuda_runtime.h>
 #include <stdio.h>

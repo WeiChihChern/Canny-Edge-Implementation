@@ -1,9 +1,12 @@
 #pragma once
 
 #include "opencv2/opencv.hpp"
+#include "DefineFlags.hpp"
 
 using namespace std;
 using namespace cv;
+
+
 
 
 #ifdef _OPENMP
@@ -252,9 +255,7 @@ public:
 
 		const kernel_type* ker = &kernel[0];
 
-#ifdef _OPENMP
-	omp_set_num_threads(conv2ThreadControl(rows*cols));
-#endif
+
 		#pragma omp parallel for 
 		for (int i = 0; i < rows; ++i) {
 			const src_type* __restrict__ src_ptr = src.ptr<src_type>(i);
@@ -307,9 +308,7 @@ public:
 		int rows = src.rows;
 		int cols = src.cols;
 
-#ifdef _OPENMP
-	omp_set_num_threads(conv2ThreadControl(rows*cols));
-#endif
+
 #pragma omp parallel for 
 		for (int i = offset_row; i < (rows - offset_row); ++i) { // Start looping
 				const src_type* __restrict__ src_ptr = src.ptr<src_type>(i);

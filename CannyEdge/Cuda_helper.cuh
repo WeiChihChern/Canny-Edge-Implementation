@@ -1,7 +1,6 @@
+#pragma once
 #include <cuda_runtime.h>
 
-#ifndef WEI_CUDA_HELPER
-#define WEI_CUDA_HELPER
 
 // Marco for error checking
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }

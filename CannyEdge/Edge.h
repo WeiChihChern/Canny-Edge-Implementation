@@ -2,26 +2,20 @@
 
 
 #include <vector>
-
+#include <thread>
 
 #include "opencv2/opencv.hpp"
 #include "Utils.h"
+#include "DefineFlags.hpp"
+
 
 
 using namespace std;
 using namespace cv;
 
 
-constexpr auto OFFSET   = 0.01;      
+constexpr auto OFFSET   = 1;      
 typedef  unsigned char  uchar;
-
-
-#ifdef _DEBUG
-	#define DEBUG_IMSHOW_RESULT
-#endif
-
-
-
 
 
 
@@ -43,8 +37,6 @@ public:
 
 	int rows, cols, size;
 
-	Edge();
-	~Edge();
 
 
 
@@ -75,8 +67,56 @@ public:
 	// 		Take a grayscale image as a input
 	// Output:
 	// 		An edge map result in grayscale
-	void cannyEdge2(Mat& src, Mat &dst, float high_thres = 200, float low_thres = 100);
+	void cannyEdge2(Mat& src, Mat&dst, float high_thres, float low_thres) {
 
+
+		this->rows = src.rows;
+		this->cols = src.cols;
+		this->size = this->rows * this->cols;
+
+
+		Mat gx(src.rows, src.cols, CV_16SC1); // Short type
+		Mat gy(src.rows, src.cols, CV_16SC1); // Short type
+		Mat tmp(src.rows, src.cols, CV_16SC1);
+
+		this->conv2_h_sobel<uchar, short>(src, tmp, this->sobel_one);
+		this->conv2_v_sobel<short, short>(tmp,  gx, this->sobel_two);
+	
+		this->conv2_h_sobel<uchar, short>(src, tmp, this->sobel_two);
+		this->conv2_v_sobel<short, short>(tmp,  gy, this->sobel_one);
+
+
+	#ifdef DEBUG_IMSHOW_RESULT
+		Mat gy_show, gx_show;
+		gy.convertTo(gy_show, CV_8UC1);
+		gx.convertTo(gx_show, CV_8UC1);
+		imshow("conv2_sobel() G(y) in 8-bit (from float)", gy_show);
+		imshow("conv2_sobel() G(x) in 8-bit (from float)", gx_show);
+		waitKey(10);
+	#endif 
+
+	#ifdef _OPENMP
+		omp_set_num_threads(threadControl(this->size));
+	#endif
+		
+
+		// Save magnitude result in unsigned char (uchar) 
+		this->calculate_Magnitude<short, short>(gx, gy, this->magnitude, true);
+		// std::thread mag_thread(&Edge::calculate_Magnitude<short, short>, this, std::ref(gx), std::ref(gy), std::ref(magnitude), true);
+		
+
+		// Save gradient result in signed char (schar)
+		this->calculate_Gradients<short, short>(gx, gy, this->gradient);
+		
+		
+		this->nonMaxSuppresion(this->magnitude, this->gradient, gy, gx, this->suppressed, high_thres, low_thres);
+
+		this->hysteresis_threshold(dst);
+
+		this->release();
+
+		return;
+	} // end of cannyedge2
 
 
 
@@ -108,12 +148,112 @@ private:
 		const Mat& magnitude, 
 		const Mat& gradient, 
 		const Mat& gy, const Mat& gx, Mat& dst, 
-		float high_thres, float low_thres);
+		float high_thres, float low_thres)
+	{
+	
+		// Both magnitude & gradient are in float type
+		if(dst.empty()) dst = Mat (this->rows, this->cols, CV_8UC1, Scalar(0)); 
+
+		uchar* dst_ptr;
+		const uchar* mag_ptr;
+		const schar* gra_ptr;
+
+		short theta;
+		const short *gx_p, *gy_p;
+		uchar cur_mag_val;
+
+
+
+		#pragma omp parallel for schedule(dynamic, 1) num_threads(6)
+		for (int i = 2; i < this->rows-2; ++i) {
+			dst_ptr = dst.ptr<uchar>(i);
+			mag_ptr = magnitude.ptr<uchar>(i);
+			gra_ptr = gradient.ptr<schar>(i);
+			gx_p    = gx.ptr<short>(i);
+			gy_p    = gy.ptr<short>(i);
+
+
+			for (int j = 2; j < this->cols-2; ++j)
+			{
+					cur_mag_val = *(mag_ptr+j);
+					theta       = gra_ptr[j];
+				
+
+					if ( cur_mag_val > low_thres && cur_mag_val != 0 ) // Edge pixel
+					{ 
+							if (theta == 90) 
+							{
+								// vertical direction
+									if ( cur_mag_val > mag_ptr[j - cols] && cur_mag_val >= mag_ptr[j + cols] ) 
+									{
+											dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : 125;
+									}
+										
+							}
+							else if (theta == 0) 
+							{
+									// horizontal direction
+									if (cur_mag_val > mag_ptr[j - 1] && cur_mag_val >= mag_ptr[j + 1]) 
+									{
+											dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : 125;
+									}
+										
+							}
+							else  // bottom-left to top-right  or  bottom-right to top-left direction
+							{ 
+									int d = (gy_p[j] * gx_p[j] < 0) ? 1 : -1;
+									if (cur_mag_val >= mag_ptr[j + cols - d] && cur_mag_val > mag_ptr[j - cols + d]) 
+									{
+											dst_ptr[j] = (cur_mag_val >= high_thres) ? 255 : 125;
+									}
+										
+							}
+					} 
+					else // Non edge pixel
+						dst_ptr[j] = 0;
+			}
+	}
+
+
+#ifdef DEBUG_IMSHOW_RESULT
+		imshow("Non maximum suppression result", dst);
+		waitKey(10);
+#endif 
+
+		return;
+	}  // end of nonMax
 
 
 
 
-	void hysteresis_threshold(Mat& src);
+
+
+	void hysteresis_threshold(Mat& src) 
+	{
+		uchar *img_start = src.ptr<uchar>(0);
+
+
+	#pragma omp parallel for //schedule(dynamic,1)
+		for (int i = 2; i < src.rows-1; i++)
+		{
+			uchar* img_p = src.ptr<uchar>(i);
+			
+	#ifdef __GNUC__
+			#pragma omp simd  
+	#endif	
+			for (int j = 2; j < src.cols-1; j++)
+			{
+				if(img_p[j] == 125) 
+				{
+					// bool b = canny_hysteresis_dfs(img_start, i, j, src.rows, src.cols, 0);
+					// if(!b) img_p[j] = 0;
+					if( !(canny_hysteresis_dfs(img_start, i, j, src.rows, src.cols, 0)) ) img_p[j] = 0;
+				}
+			}
+		}
+	}
+
+
 
 
 
@@ -126,15 +266,15 @@ private:
 	//      'To_8bits'         Turning calculated magnitude result to 8 bits or not
 	// Output:
 	//		'dst'              Where to store the magnitude result
-	template <typename src1_type, typename src2_type>
-	inline void calculate_Magnitude(const Mat& src1, const Mat& src2, Mat& dst, bool To_8bits = false) 
+	template <typename src1_type=short, typename src2_type=short>
+	void calculate_Magnitude(const Mat& src1, const Mat& src2, Mat& dst, bool To_8bits = false) 
 	{
 
 		if (dst.empty() || dst.type() != CV_32FC1) dst = Mat(src1.rows, src1.cols, CV_32FC1);
 
 
 		
-		#pragma omp parallel for 
+		#pragma omp parallel for num_threads(8)
 		for (int i = 0; i < this->rows; ++i)
 		{
 			const src1_type* gx = src1.ptr<src1_type>(i);
@@ -170,7 +310,6 @@ private:
 
 
 
-
 	
 	// to convert it to degree.
 	// Input params: 
@@ -178,7 +317,7 @@ private:
 	// Output:
 	// 		'dst'              Where to store the gradient result (in degrees) in signed char
 	template <typename src1_type, typename src2_type>
-	inline void calculate_Gradients(const Mat& src1, const Mat& src2, Mat& dst) 
+	void calculate_Gradients(const Mat& src1, const Mat& src2, Mat& dst) 
 	{
 
 		if (dst.empty()) dst = Mat(this->rows, this->cols, CV_8SC1);
@@ -189,30 +328,26 @@ private:
 
 		float w;
 
-		#pragma omp parallel for 
+		#pragma omp parallel for num_threads(6)
 		for (int i = 0; i < this->rows; ++i)
 		{  
 			gx = src1.ptr<src1_type>(i);
 			gy = src2.ptr<src2_type>(i);
 			dst_p = dst.ptr<schar>(i);
 
-#ifdef __GNUC__
-			#pragma omp simd //Vectorized
-#endif
+
 	    	for (int j = 0; j < this->cols; ++j)
 			{
-				w = abs(gy[j] / (gx[j] + OFFSET));
 
-#ifdef __GNUC__
-				dst_p[j] = this->simd_w_classifier(w);
-#else
-				if (w < 0.4)
+				w = abs(gy[j] / (gx[j]+0.9));
+
+				if (w < 0.4 || -w > -0.4)
 					dst_p[j] = 0;
-				else if (w > 2.3)
+				else if (w > 2.3 || w < -2.3)
 					dst_p[j] = 90;
 				else
 					dst_p[j] = 45;
-#endif
+// #endif
 			}
 		}
 
@@ -263,9 +398,6 @@ private:
 
 
 
-
-
-
 #ifdef __GNUC__
 	#pragma omp declare simd inbranch
 #endif
@@ -277,12 +409,6 @@ private:
 		else 
 			return 45;
 	};
-
-
-
-
-
-
 
 
 

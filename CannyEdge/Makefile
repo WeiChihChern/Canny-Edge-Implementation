@@ -1,9 +1,10 @@
 CC = g++
-CFLAGS = -std=c++17 -march=native -Wall -pthread -O3 -g -mavx -mavx2 -fopt-info-optimized -ffast-math -fno-math-errno
+# CFLAGS = -std=c++17 -march=native -Wall -pthread -O2 -g -pg -mavx2 -ffast-math -fno-math-errno #-fopt-info-optimized 
+CFLAGS = -std=c++17 -march=native -Wall -pthread -O2 -g -pg -mavx2 -fno-omit-frame-pointer -ffast-math -DNDEBUG -fno-default-inline -fno-inline
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 0)
-CFLAGS += -fopenmp
+# CFLAGS += -fopenmp
 endif
 
 
@@ -25,7 +26,7 @@ all: $(SRCS) $(PROG)
 
 $(PROG) : $(OBJECTS)
 	@echo Linking: $@
-	@$(CC) -std=c++11 -fopenmp -o $@ $(OBJECTS) $(INCLUDE) $(LIBS)
+	@$(CC) -std=c++11 -g -pg -fopenmp -o $@ $(OBJECTS) $(INCLUDE) $(LIBS)
 
 clean:
 	rm -f $(PROG)

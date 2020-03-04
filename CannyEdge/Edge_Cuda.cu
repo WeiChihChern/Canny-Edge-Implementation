@@ -1,6 +1,4 @@
-#ifndef _EDGE_CUDA_CU_
-#define _EDGE_CUDA_CU_
-
+#pragma once
 
 
 #include "Edge_Cuda.cuh"

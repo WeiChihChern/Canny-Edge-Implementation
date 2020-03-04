@@ -72,29 +72,29 @@ int main(int argc, char* argv[]) {
 
 		
 
-	timer.start();
-	for (int i = 0; i < iterations; i++) 
-		cv::Canny(input, result, 200, 100);
+	// timer.start();
+	// for (int i = 0; i < iterations; i++) 
+	// 	cv::Canny(input, result, 200, 100);
 
-	timer.stop();
+	// timer.stop();
 
-	cout << "Opencv canny edge on small image: " << timer.elapsedMilliseconds() / (double)iterations 
-		<< "ms (avg of " << to_string(iterations) << " runs)\n";
+	// cout << "Opencv canny edge on small image: " << timer.elapsedMilliseconds() / (double)iterations 
+	// 	<< "ms (avg of " << to_string(iterations) << " runs)\n";
 	
 	
 
 
 
-	imshow("My canny edge", result);
-	waitKey(0);
+	// imshow("My canny edge", result);
+	// waitKey(0);
 
 
 
 
 
 
-	imshow("Opencv canny edge", result);
-	waitKey(0);
+	// imshow("Opencv canny edge", result);
+	// waitKey(0);
 
 
 	return 0;
