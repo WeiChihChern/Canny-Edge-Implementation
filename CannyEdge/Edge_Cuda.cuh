@@ -1,7 +1,7 @@
 #ifndef _EDGE_CUDA_CUH_
 #define _EDGE_CUDA_CUH_
 
-#include <cuda_runtime.h>
+// #include <cuda_runtime.h>
 #include <stdio.h>
 
 

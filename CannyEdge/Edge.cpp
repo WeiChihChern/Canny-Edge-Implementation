@@ -4,7 +4,7 @@
 #define _USE_MATH_DEFINES // for C++
 #include <math.h>
 
-#include "Edge_Cuda.cuh"
+// #include "Edge_Cuda.cuh"
 
 
 
@@ -24,14 +24,14 @@ Edge::~Edge()
 
 
 
-void Edge::cannyEdge_cuda(Mat& src, Mat& dst, const float& high_thres, const float& low_thres)
-{
-	canny_cuda_impl(src.data, dst.data, src.rows, src.cols, high_thres, low_thres);
+// void Edge::cannyEdge_cuda(Mat& src, Mat& dst, const float& high_thres, const float& low_thres)
+// {
+// 	canny_cuda_impl(src.data, dst.data, src.rows, src.cols, high_thres, low_thres);
 
-	this->hysteresis_threshold(dst);
+// 	this->hysteresis_threshold(dst);
 
-	return;
-}
+// 	return;
+// }
 
 
 
